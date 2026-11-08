@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agenda des concours de chiens de troupeau</title>
+<style>
+  :root {
+    --vert: #2f5d3a; --vert-clair: #e6efe7; --sable: #f7f4ee; --texte: #222;
+    --gris: #6b6b6b; --bord: #d9d4c7; --rouge: #a33a2a; --orange: #b86b12; --bleu: #2c5f8a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         background: var(--sable); color: var(--texte); line-height: 1.45; }
+  header { background: var(--vert); color: #fff; padding: 12px 16px; }
+  header .ligne { max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap;
+                  align-items: center; gap: 8px 16px; justify-content: space-between; }
+  header h1 { font-size: 1.15rem; margin: 0; }
+  nav { display: flex; flex-wrap: wrap; gap: 6px; }
+  nav a, nav button { color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px;
+                      background: rgba(255,255,255,.12); border: 0; font: inherit; cursor: pointer; }
+  nav a.actif { background: rgba(255,255,255,.3); }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  h2 { margin: 8px 0 12px; font-size: 1.3rem; }
+  h3 { margin: 18px 0 8px; font-size: 1.05rem; }
+  .carte { background: #fff; border: 1px solid var(--bord); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .filtres { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+  .filtres label { font-size: .85rem; color: var(--gris); display: flex; flex-direction: column; gap: 2px; }
+  label { font-size: .9rem; }
+  input, select, textarea { font: inherit; padding: 7px 9px; border: 1px solid var(--bord);
+                            border-radius: 6px; background: #fff; width: 100%; }
+  textarea { min-height: 70px; }
+  .filtres input, .filtres select { width: auto; min-width: 140px; }
+  .filtres input[type=checkbox] { min-width: 0; }
+  .grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px 14px; }
+  .champ { display: flex; flex-direction: column; gap: 3px; }
+  .champ.large { grid-column: 1 / -1; }
+  button, .bouton { font: inherit; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--vert);
+                    background: var(--vert); color: #fff; cursor: pointer; text-decoration: none; display: inline-block; }
+  button.secondaire { background: #fff; color: var(--vert); }
+  button.danger { background: #fff; color: var(--rouge); border-color: var(--rouge); }
+  button.petit { padding: 4px 9px; font-size: .85rem; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .mois-titre { margin: 18px 0 8px; font-weight: 700; color: var(--vert); text-transform: capitalize; }
+  .concours { display: flex; gap: 12px; cursor: pointer; }
+  .concours:hover { border-color: var(--vert); }
+  .date-bloc { min-width: 62px; text-align: center; background: var(--vert-clair); border-radius: 8px; padding: 6px; }
+  .date-bloc .j { font-size: 1.4rem; font-weight: 700; color: var(--vert); line-height: 1.1; }
+  .date-bloc .m { font-size: .8rem; text-transform: uppercase; color: var(--gris); }
+  .concours .info { flex: 1; min-width: 0; }
+  .concours .titre { font-weight: 700; }
+  .sous { color: var(--gris); font-size: .9rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .tag { font-size: .78rem; padding: 2px 8px; border-radius: 999px; background: var(--vert-clair); color: var(--vert); }
+  .badge { font-size: .78rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+  .b-ouvert { background: #dff1e1; color: #1f6b2c; }
+  .b-bientot { background: #fdf0dc; color: var(--orange); }
+  .b-clos { background: #eee; color: var(--gris); }
+  .b-annule { background: #f6dedb; color: var(--rouge); }
+  .b-provisoire { background: #e3ecf5; color: var(--bleu); }
+  .b-champ { background: #f3e6f7; color: #6b2c84; }
+  .vide { color: var(--gris); font-style: italic; padding: 20px 0; }
+  .msg { padding: 10px 12px; border-radius: 8px; margin: 10px 0; }
+  .msg.ok { background: #dff1e1; color: #1f6b2c; }
+  .msg.err { background: #f6dedb; color: var(--rouge); }
+  .msg.info { background: #e3ecf5; color: var(--bleu); }
+  .cases { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .cases label { display: flex; gap: 5px; align-items: center; font-size: .9rem; }
+  .cases input { width: auto; }
+  fieldset { border: 1px solid var(--bord); border-radius: 8px; padding: 8px 12px; margin: 0 0 8px; }
+  legend { font-weight: 600; font-size: .9rem; color: var(--vert); padding: 0 4px; }
+  .onglets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .onglets button { background: #fff; color: var(--vert); }
+  .onglets button.actif { background: var(--vert); color: #fff; }
+  table { width: 100%; border-collapse: collapse; background: #fff; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--bord); font-size: .9rem; vertical-align: middle; }
+  th { background: var(--vert-clair); }
+  td input, td select { padding: 4px 6px; }
+  .tableau { overflow-x: auto; }
+  /* calendrier mensuel */
+  .cal-nav { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .cal-nav .t { font-weight: 700; text-transform: capitalize; min-width: 150px; text-align: center; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal .jsem { font-size: .8rem; text-align: center; color: var(--gris); padding: 4px 0; }
+  .cal .case { background: #fff; min-height: 86px; border: 1px solid var(--bord); border-radius: 4px; padding: 3px; overflow: hidden; }
+  .cal .case.hors { background: #f1eee6; }
+  .cal .case.auj { border-color: var(--vert); border-width: 2px; }
+  .cal .num { font-size: .78rem; color: var(--gris); }
+  .cal .puce { display: block; font-size: .72rem; background: var(--vert); color: #fff; border-radius: 3px;
+               padding: 1px 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .cal .puce.annule { background: var(--rouge); text-decoration: line-through; }
+  .cal .puce.provisoire { background: var(--bleu); }
+  /* fenetre detail */
+  #fenetre { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-start;
+             justify-content: center; padding: 30px 12px; overflow-y: auto; z-index: 10; }
+  #fenetre.visible { display: flex; }
+  #fenetre .contenu { background: #fff; border-radius: 12px; max-width: 640px; width: 100%; padding: 18px; position: relative; }
+  #fenetre .fermer { position: absolute; top: 10px; right: 10px; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 10px 0; }
+  dt { color: var(--gris); font-size: .9rem; }
+  dd { margin: 0; }
+  footer { text-align: center; color: var(--gris); font-size: .8rem; padding: 20px; }
+  @media (max-width: 640px) {
+    .filtres label { flex: 1 1 100%; }
+    .filtres input, .filtres select { width: 100%; }
+    .cal .case { min-height: 60px; }
+    .cal .puce { font-size: .65rem; }
+    dl { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="ligne">
+    <h1>Agenda des concours de chiens de troupeau</h1>
+    <nav id="menu"></nav>
+  </div>
+</header>
+<main id="vue"><p class="vide">Chargement...</p></main>
+<div id="fenetre" onclick="if (event.target === this) app.fermer()"><div class="contenu" id="fenetre-contenu"></div></div>
+<footer>Agenda commun des clubs - les informations sont saisies par les organisateurs.</footer>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+// ===================== A REMPLACER =====================
+const SUPABASE_URL = 'https://ctqhkmuaezkgtdmqdfyf.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_PgeQtylbGdtv5jJRtoelrA_Du3sTF3d';
+// =======================================================
+
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const REGIONS = ['Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
+  'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie', 'Nouvelle-Aquitaine',
+  'Occitanie', 'Pays de la Loire', "Provence-Alpes-Côte d'Azur", 'Hors France'];
+const STATUTS = { provisoire: 'Provisoire', confirme: 'Confirmé', annule: 'Annulé' };
+
+const etat = {
+  session: null, profil: null,
+  familles: [], niveaux: [], championnats: [], juges: [], concours: [],
+  filtres: { famille: '', niveau: '', region: '', texte: '', passes: false },
+  vueCal: 'liste', moisAffiche: debutMois(new Date()),
+  ongletAdmin: 'comptes', tousConcours: false, message: null,
+};
+
+// ---------- utilitaires ----------
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function aujourdhui() { return new Date().toLocaleDateString('sv-SE'); }
+function debutMois(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function versDate(s) { return new Date(s + 'T00:00:00'); }
+function isoLocal(d) { return d.toLocaleDateString('sv-SE'); }
+function fmt(s, opts = { day: 'numeric', month: 'long', year: 'numeric' }) {
+  return s ? versDate(s).toLocaleDateString('fr-FR', opts) : '';
+}
+function fmtPeriode(c) {
+  if (!c.date_fin || c.date_fin === c.date_debut) return fmt(c.date_debut, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  return 'du ' + fmt(c.date_debut, { day: 'numeric', month: 'long' }) + ' au ' + fmt(c.date_fin);
+}
+function niveau(id) { return etat.niveaux.find(n => n.id === id); }
+function famille(id) { return etat.familles.find(f => f.id === id); }
+function nomNiveau(id) {
+  const n = niveau(id); if (!n) return null;
+  const f = famille(n.famille_id);
+  return (f ? f.nom + ' - ' : '') + n.nom;
+}
+function nomsJuges(c) {
+  const l = (c.juges || []).map(id => etat.juges.find(j => j.id === id)?.nom).filter(Boolean);
+  if (c.juge_autre) l.push(c.juge_autre);
+  return l.join(', ');
+}
+function nomsChamp(c) {
+  return (c.championnats || []).map(id => etat.championnats.find(x => x.id === id)?.nom).filter(Boolean);
+}
+function titreConcours(c) {
+  if (c.titre) return c.titre;
+  const fams = [...new Set((c.niveaux || []).map(id => famille(niveau(id)?.famille_id)?.nom).filter(Boolean))];
+  return (fams.length ? 'Concours ' + fams.join(' / ') : 'Concours') + ' - ' + c.commune;
+}
+function badgeInscription(c) {
+  if (c.statut === 'annule') return '<span class="badge b-annule">Annulé</span>';
+  const t = aujourdhui();
+  if (c.date_debut < t) return '';
+  if (c.inscription_ouverture && t < c.inscription_ouverture)
+    return `<span class="badge b-bientot">Inscriptions le ${fmt(c.inscription_ouverture, { day: 'numeric', month: 'short' })}</span>`;
+  if (c.inscription_cloture && t > c.inscription_cloture) return '<span class="badge b-clos">Inscriptions closes</span>';
+  if (c.inscription_ouverture || c.inscription_cloture) return '<span class="badge b-ouvert">Inscriptions ouvertes</span>';
+  return '';
+}
+function badgesConcours(c) {
+  let h = badgeInscription(c);
+  if (c.statut === 'provisoire') h += '<span class="badge b-provisoire">Date provisoire</span>';
+  if ((c.championnats || []).length) h += '<span class="badge b-champ">Qualificatif</span>';
+  return h;
+}
+function valeur(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function ouNull(v) { return v === '' ? null : v; }
+function cochees(nom) { return [...document.querySelectorAll(`input[name="${nom}"]:checked`)].map(i => Number(i.value)); }
+function message(type, texte) { etat.message = { type, texte }; }
+function blocMessage() {
+  const m = etat.message;
+  if (!m) return '';
+  const h = location.hash || '#calendrier';
+  if (!m.page) m.page = h;            // le message reste sur la page ou il s'affiche
+  if (m.page !== h) return '';
+  return `<div class="msg ${m.type}">${esc(m.texte)}</div>`;
+}
+function traduireErreur(e) {
+  const t = e?.message || String(e);
+  if (/Invalid login credentials/i.test(t)) return 'Email ou mot de passe incorrect.';
+  if (/Email not confirmed/i.test(t)) return "Ton email n'est pas encore confirmé : clique sur le lien recu par mail.";
+  if (/already registered/i.test(t)) return 'Un compte existe déjà avec cet email.';
+  if (/Password should be/i.test(t)) return 'Le mot de passe doit faire au moins 6 caractères.';
+  if (/row-level security/i.test(t)) return "Action refusée : ton compte n'a pas les droits (compte pas encore validé ?).";
+  if (/rate limit/i.test(t)) return 'Trop de demandes, réessaie dans quelques minutes.';
+  return t;
+}
+const estConnecte = () => !!etat.session;
+const estValide = () => etat.profil?.statut === 'valide';
+const estAdmin = () => estValide() && etat.profil?.role === 'admin';
+
+// ---------- donnees ----------
+async function chargerReferences() {
+  const [f, n, c, j] = await Promise.all([
+    sb.from('familles').select('*').order('ordre'),
+    sb.from('niveaux').select('*').order('ordre'),
+    sb.from('championnats').select('*').order('ordre'),
+    sb.from('juges').select('*').order('nom'),
+  ]);
+  for (const r of [f, n, c, j]) if (r.error) throw r.error;
+  etat.familles = f.data; etat.niveaux = n.data; etat.championnats = c.data; etat.juges = j.data;
+}
+async function chargerConcours() {
+  const { data, error } = await sb.from('concours')
+    .select('*, organisateur:organisateurs(nom_club, responsable, email, telephone, site_web)')
+    .order('date_debut');
+  if (error) throw error;
+  etat.concours = data;
+}
+async function chargerProfil() {
+  if (!etat.session) { etat.profil = null; return; }
+  const { data, error } = await sb.from('organisateurs').select('*').eq('id', etat.session.user.id).maybeSingle();
+  if (error) throw error;
+  etat.profil = data;
+}
+
+// ---------- menu ----------
+function menu() {
+  const h = location.hash || '#calendrier';
+  const lien = (href, txt) => `<a href="${href}" class="${h.startsWith(href) ? 'actif' : ''}">${txt}</a>`;
+  let html = lien('#calendrier', 'Calendrier');
+  if (estConnecte()) {
+    html += lien('#fiche', 'Ma fiche');
+    if (estValide()) html += lien('#mes-concours', 'Mes concours');
+    if (estAdmin()) html += lien('#admin', 'Administration');
+    html += '<button onclick="app.deconnexion()">Déconnexion</button>';
+  } else {
+    html += lien('#connexion', 'Espace organisateur');
+  }
+  document.getElementById('menu').innerHTML = html;
+}
+
+// ---------- vue : calendrier public ----------
+function concoursFiltres() {
+  const f = etat.filtres, t = aujourdhui();
+  return etat.concours.filter(c => {
+    if (!f.passes && (c.date_fin || c.date_debut) < t) return false;
+    if (f.niveau && !(c.niveaux || []).includes(Number(f.niveau))) return false;
+    if (f.famille && !(c.niveaux || []).some(id => niveau(id)?.famille_id === Number(f.famille))) return false;
+    if (f.region && c.region !== f.region) return false;
+    if (f.texte) {
+      const s = (titreConcours(c) + ' ' + c.commune + ' ' + (c.departement || '') + ' ' + (c.organisateur?.nom_club || '')).toLowerCase();
+      if (!s.includes(f.texte.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+function vueCalendrier() {
+  const f = etat.filtres;
+  const optF = etat.familles.filter(x => x.actif).map(x => `<option value="${x.id}" ${String(x.id) === f.famille ? 'selected' : ''}>${esc(x.nom)}</option>`).join('');
+  const nivDispo = etat.niveaux.filter(n => n.actif && (!f.famille || n.famille_id === Number(f.famille)));
+  const optN = nivDispo.map(n => `<option value="${n.id}" ${String(n.id) === f.niveau ? 'selected' : ''}>${esc(nomNiveau(n.id))}</option>`).join('');
+  const optR = REGIONS.map(r => `<option ${r === f.region ? 'selected' : ''}>${esc(r)}</option>`).join('');
+  let html = `<h2>Calendrier des concours</h2>
+  <div class="carte filtres">
+    <label>Famille<select onchange="app.filtre('famille', this.value)"><option value="">Toutes</option>${optF}</select></label>
+    <label>Épreuve<select onchange="app.filtre('niveau', this.value)"><option value="">Toutes</option>${optN}</select></label>
+    <label>Région<select onchange="app.filtre('region', this.value)"><option value="">Toutes</option>${optR}</select></label>
+    <label>Recherche<input type="search" placeholder="Commune, club..." value="${esc(f.texte)}" onchange="app.filtre('texte', this.value)"></label>
+    <label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" style="width:auto" ${f.passes ? 'checked' : ''} onchange="app.filtre('passes', this.checked)"> Concours passés</label>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="${etat.vueCal === 'liste' ? '' : 'secondaire'}" onclick="app.vueCal('liste')">Liste</button>
+      <button class="${etat.vueCal === 'mois' ? '' : 'secondaire'}" onclick="app.vueCal('mois')">Mois</button>
+    </div>
+  </div>`;
+  html += etat.vueCal === 'liste' ? vueListe() : vueMois();
+  return html;
+}
+function carteConcours(c, avecActions = false) {
+  const d = versDate(c.date_debut);
+  const tags = (c.niveaux || []).map(id => niveau(id)).filter(Boolean)
+    .map(n => `<span class="tag">${esc(n.nom)}</span>`).join('');
+  const actions = avecActions ? `<div class="actions">
+      <button class="petit secondaire" onclick="event.stopPropagation(); location.hash='#concours/${c.id}'">Modifier</button>
+      <button class="petit secondaire" onclick="event.stopPropagation(); app.dupliquer(${c.id})">Dupliquer</button>
+      <button class="petit danger" onclick="event.stopPropagation(); app.supprimerConcours(${c.id})">Supprimer</button></div>` : '';
+  return `<div class="carte concours" onclick="app.detail(${c.id})">
+    <div class="date-bloc"><div class="j">${d.getDate()}</div><div class="m">${d.toLocaleDateString('fr-FR', { month: 'short' })}</div></div>
+    <div class="info">
+      <div class="titre">${esc(titreConcours(c))}</div>
+      <div class="sous">${esc(fmtPeriode(c))} - ${esc(c.commune)}${c.departement ? ' (' + esc(c.departement) + ')' : ''}${c.organisateur?.nom_club ? ' - ' + esc(c.organisateur.nom_club) : ''}</div>
+      <div class="tags">${badgesConcours(c)}${tags}</div>
+      ${actions}
+    </div></div>`;
+}
+function vueListe() {
+  const liste = concoursFiltres();
+  if (!liste.length) return '<p class="vide">Aucun concours ne correspond à ces critères.</p>';
+  let html = '', moisCourant = '';
+  for (const c of liste) {
+    const m = versDate(c.date_debut).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    if (m !== moisCourant) { html += `<div class="mois-titre">${esc(m)}</div>`; moisCourant = m; }
+    html += carteConcours(c);
+  }
+  return html;
+}
+function vueMois() {
+  const m = etat.moisAffiche;
+  // en vue mois, on montre aussi les concours passes du mois affiche
+  const tous = etat.concours.filter(concoursFiltresSansDate);
+  const premier = new Date(m.getFullYear(), m.getMonth(), 1);
+  const decal = (premier.getDay() + 6) % 7;
+  const debut = new Date(premier); debut.setDate(1 - decal);
+  const t = aujourdhui();
+  let html = `<div class="cal-nav"><button class="secondaire petit" onclick="app.mois(-1)">&lsaquo;</button>
+    <div class="t">${esc(m.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }))}</div>
+    <button class="secondaire petit" onclick="app.mois(1)">&rsaquo;</button>
+    <button class="secondaire petit" onclick="app.mois(0)">Aujourd'hui</button></div><div class="cal">`;
+  for (const j of ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']) html += `<div class="jsem">${j}</div>`;
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(debut); d.setDate(debut.getDate() + i);
+    const iso = isoLocal(d);
+    const ev = tous.filter(c => c.date_debut <= iso && (c.date_fin || c.date_debut) >= iso);
+    html += `<div class="case ${d.getMonth() !== m.getMonth() ? 'hors' : ''} ${iso === t ? 'auj' : ''}">
+      <div class="num">${d.getDate()}</div>
+      ${ev.map(c => `<span class="puce ${c.statut === 'annule' ? 'annule' : c.statut === 'provisoire' ? 'provisoire' : ''}" title="${esc(titreConcours(c))}" onclick="app.detail(${c.id})">${esc(c.commune)}</span>`).join('')}
+    </div>`;
+    if (i === 34) {
+      const suivant = new Date(debut); suivant.setDate(debut.getDate() + 35);
+      if (suivant.getMonth() !== m.getMonth()) break;
+    }
+  }
+  return html + '</div><p class="sous">Vert : confirmé - Bleu : date provisoire - Rouge : annulé. Clique sur un concours pour le détail.</p>';
+}
+function concoursFiltresSansDate(c) {
+  const sauv = etat.filtres.passes; etat.filtres.passes = true;
+  const ok = concoursFiltres().includes(c);
+  etat.filtres.passes = sauv;
+  return ok;
+}
+function detailHtml(c) {
+  const o = c.organisateur || {};
+  const lignes = [
+    ['Dates', fmtPeriode(c)],
+    ['Lieu', [c.adresse, c.commune, c.departement, c.region].filter(Boolean).join(', ')],
+    ['Épreuves', (c.niveaux || []).map(nomNiveau).filter(Boolean).join(' ; ')],
+    ['Juge(s)', nomsJuges(c)],
+    ['Qualificatif pour', nomsChamp(c).join(', ')],
+    ['Ouverture des inscriptions', fmt(c.inscription_ouverture)],
+    ['Clôture des inscriptions', fmt(c.inscription_cloture)],
+    ['Places', c.places],
+    ['Statut', STATUTS[c.statut]],
+    ['Contact', c.contact],
+    ['Remarques', c.remarques],
+  ].filter(([, v]) => v !== null && v !== undefined && v !== '');
+  const lien = c.inscription_lien ? `<p><a class="bouton" href="${esc(c.inscription_lien)}" target="_blank" rel="noopener">S'inscrire / plus d'infos</a></p>` : '';
+  const orga = [o.nom_club, o.responsable, o.telephone, o.email].filter(Boolean).map(esc).join(' - ');
+  return `<button class="fermer secondaire petit" onclick="app.fermer()">Fermer</button>
+    <h2 style="padding-right:70px">${esc(titreConcours(c))}</h2>
+    <div class="tags">${badgesConcours(c)}</div>
+    <dl>${lignes.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+    ${lien}
+    ${orga ? `<h3>Organisateur</h3><p>${orga}${o.site_web ? ` - <a href="${esc(o.site_web)}" target="_blank" rel="noopener">site</a>` : ''}</p>` : ''}`;
+}
+
+// ---------- vue : connexion ----------
+function vueConnexion(mode = 'connexion') {
+  if (estConnecte()) { location.hash = '#fiche'; return ''; }
+  const onglet = (m, t) => `<button class="${mode === m ? 'actif' : ''}" onclick="location.hash='#${m}'">${t}</button>`;
+  let corps = '';
+  if (mode === 'connexion') corps = `
+    <div class="champ"><label>Email</label><input id="c-email" type="email" autocomplete="email"></div>
+    <div class="champ" style="margin-top:8px"><label>Mot de passe</label><input id="c-mdp" type="password" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter') app.connexion()"></div>
+    <div class="actions"><button onclick="app.connexion()">Se connecter</button></div>`;
+  if (mode === 'inscription') corps = `
+    <p class="sous">Crée ton compte organisateur. Un administrateur devra le valider avant que tu puisses publier des concours.</p>
+    <div class="champ"><label>Nom du club ou de l'organisateur</label><input id="i-club"></div>
+    <div class="champ" style="margin-top:8px"><label>Email</label><input id="i-email" type="email" autocomplete="email"></div>
+    <div class="champ" style="margin-top:8px"><label>Mot de passe (8 caractères minimum)</label><input id="i-mdp" type="password" autocomplete="new-password"></div>
+    <div class="actions"><button onclick="app.inscription()">Créer mon compte</button></div>`;
+  if (mode === 'oubli') corps = `
+    <p class="sous">Indique ton email, tu recevras un lien pour choisir un nouveau mot de passe.</p>
+    <div class="champ"><label>Email</label><input id="o-email" type="email"></div>
+    <div class="actions"><button onclick="app.oubli()">Envoyer le lien</button></div>`;
+  return `<h2>Espace organisateur</h2>
+    <div class="onglets">${onglet('connexion', 'Connexion')}${onglet('inscription', 'Créer un compte')}${onglet('oubli', 'Mot de passe oublié')}</div>
+    ${blocMessage()}<div class="carte" style="max-width:460px">${corps}</div>`;
+}
+function vueNouveauMdp() {
+  return `<h2>Nouveau mot de passe</h2>${blocMessage()}
+    <div class="carte" style="max-width:460px">
+      <div class="champ"><label>Nouveau mot de passe</label><input id="n-mdp" type="password" autocomplete="new-password"></div>
+      <div class="actions"><button onclick="app.nouveauMdp()">Enregistrer</button></div></div>`;
+}
+
+// ---------- vue : fiche organisateur ----------
+function casesNiveaux(nom, selection) {
+  return etat.familles.filter(f => f.actif).map(f => {
+    const nivs = etat.niveaux.filter(n => n.famille_id === f.id && (n.actif || selection.includes(n.id)));
+    if (!nivs.length) return '';
+    return `<fieldset><legend>${esc(f.nom)}</legend><div class="cases">${nivs.map(n =>
+      `<label><input type="checkbox" name="${nom}" value="${n.id}" ${selection.includes(n.id) ? 'checked' : ''}> ${esc(n.nom)}</label>`).join('')}</div></fieldset>`;
+  }).join('');
+}
+function selectRegion(id, val) {
+  return `<select id="${id}"><option value="">--</option>${REGIONS.map(r => `<option ${r === val ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select>`;
+}
+function vueFiche() {
+  if (!estConnecte()) { location.hash = '#connexion'; return ''; }
+  const p = etat.profil;
+  if (!p) return '<p class="vide">Fiche introuvable. Déconnecte-toi puis reconnecte-toi.</p>';
+  const statut = {
+    en_attente: '<div class="msg info">Ton compte est en attente de validation par un administrateur. Tu peux déjà remplir ta fiche.</div>',
+    refuse: '<div class="msg err">Ton compte a été refusé. Contacte un administrateur si c\'est une erreur.</div>',
+    valide: '',
+  }[p.statut];
+  const ch = (id, label, val, type = 'text', large = false) =>
+    `<div class="champ ${large ? 'large' : ''}"><label>${label}</label><input id="${id}" type="${type}" value="${esc(val)}"></div>`;
+  return `<h2>Ma fiche organisateur</h2>${blocMessage()}${statut}
+    <div class="carte">
+      <p class="sous">Ces informations sont visibles publiquement sur les concours que tu publies. Le lieu et les épreuves serviront à pré-remplir tes nouveaux concours.</p>
+      <div class="grille">
+        ${ch('f-club', 'Nom du club / organisateur *', p.nom_club)}
+        ${ch('f-resp', 'Responsable', p.responsable)}
+        ${ch('f-email', 'Email de contact', p.email, 'email')}
+        ${ch('f-tel', 'Téléphone', p.telephone, 'tel')}
+        <div class="champ"><label>Région</label>${selectRegion('f-region', p.region)}</div>
+        ${ch('f-dep', 'Département (ex : 13)', p.departement)}
+        ${ch('f-commune', 'Commune habituelle des concours', p.commune_habituelle)}
+        ${ch('f-adresse', 'Adresse / terrain habituel', p.adresse_habituelle)}
+        ${ch('f-site', 'Site web ou page Facebook', p.site_web, 'url', true)}
+      </div>
+      <h3>Épreuves que le club organise</h3>
+      ${casesNiveaux('f-niv', p.epreuves_proposees || [])}
+      <div class="actions"><button onclick="app.enregistrerFiche()">Enregistrer ma fiche</button></div>
+    </div>`;
+}
+
+// ---------- vue : mes concours ----------
+function vueMesConcours() {
+  if (!estValide()) { location.hash = '#fiche'; return ''; }
+  const uid = etat.session.user.id;
+  const liste = etat.concours.filter(c => (estAdmin() && etat.tousConcours) || c.organisateur_id === uid)
+    .slice().sort((a, b) => b.date_debut.localeCompare(a.date_debut));
+  return `<h2>${etat.tousConcours ? 'Tous les concours' : 'Mes concours'}</h2>${blocMessage()}
+    <div class="actions" style="margin:0 0 12px">
+      <button onclick="location.hash='#concours/nouveau'">+ Nouveau concours</button>
+      ${estAdmin() ? `<button class="secondaire" onclick="app.basculerTous()">${etat.tousConcours ? 'Voir seulement les miens' : 'Voir tous les concours (admin)'}</button>` : ''}
+    </div>
+    ${liste.length ? liste.map(c => carteConcours(c, true)).join('') : '<p class="vide">Aucun concours pour le moment.</p>'}`;
+}
+function vueFormConcours(id) {
+  if (!estValide()) { location.hash = '#fiche'; return ''; }
+  const p = etat.profil;
+  let c;
+  if (id === 'nouveau') {
+    const modele = etat.modele; etat.modele = null;
+    c = modele || {
+      commune: p.commune_habituelle || '', departement: p.departement || '', region: p.region || '',
+      adresse: p.adresse_habituelle || '', niveaux: p.epreuves_proposees || [], juges: [], championnats: [],
+      contact: [p.responsable, p.telephone, p.email].filter(Boolean).join(' - '), statut: 'provisoire',
+    };
+  } else {
+    c = etat.concours.find(x => String(x.id) === id);
+    if (!c) return '<p class="vide">Concours introuvable.</p>';
+  }
+  const ch = (cid, label, val, type = 'text', large = false, extra = '') =>
+    `<div class="champ ${large ? 'large' : ''}"><label>${label}</label><input id="${cid}" type="${type}" value="${esc(val)}" ${extra}></div>`;
+  const jugesDispo = etat.juges.filter(j => j.actif || (c.juges || []).includes(j.id));
+  const champDispo = etat.championnats.filter(x => x.actif || (c.championnats || []).includes(x.id));
+  return `<h2>${id === 'nouveau' ? 'Nouveau concours' : 'Modifier le concours'}</h2>${blocMessage()}
+  <div class="carte">
+    <h3 style="margin-top:0">Quand et où</h3>
+    <div class="grille">
+      ${ch('k-titre', 'Titre (facultatif, sinon généré automatiquement)', c.titre, 'text', true)}
+      ${ch('k-debut', 'Date de début *', c.date_debut, 'date')}
+      ${ch('k-fin', 'Date de fin (si plusieurs jours)', c.date_fin, 'date')}
+      ${ch('k-commune', 'Commune *', c.commune)}
+      ${ch('k-dep', 'Département', c.departement)}
+      <div class="champ"><label>Région</label>${selectRegion('k-region', c.region)}</div>
+      ${ch('k-adresse', 'Adresse / lieu-dit', c.adresse)}
+    </div>
+    <h3>Épreuves</h3>
+    ${casesNiveaux('k-niv', c.niveaux || [])}
+    <h3>Juge(s)</h3>
+    ${jugesDispo.length ? `<div class="cases">${jugesDispo.map(j =>
+      `<label><input type="checkbox" name="k-juge" value="${j.id}" ${(c.juges || []).includes(j.id) ? 'checked' : ''}> ${esc(j.nom)}${j.secteur ? ' <span class="sous">(' + esc(j.secteur) + ')</span>' : ''}</label>`).join('')}</div>`
+      : '<p class="sous">La liste officielle des juges n\'est pas encore remplie.</p>'}
+    <div class="champ" style="margin-top:8px"><label>Autre juge (s'il n'est pas dans la liste)</label><input id="k-juge-autre" value="${esc(c.juge_autre)}"></div>
+    <h3>Qualificatif pour</h3>
+    <div class="cases">${champDispo.map(x =>
+      `<label><input type="checkbox" name="k-champ" value="${x.id}" ${(c.championnats || []).includes(x.id) ? 'checked' : ''}> ${esc(x.nom)}</label>`).join('')}</div>
+    <h3>Inscriptions</h3>
+    <div class="grille">
+      ${ch('k-ouv', 'Ouverture des inscriptions', c.inscription_ouverture, 'date')}
+      ${ch('k-clo', 'Clôture des inscriptions', c.inscription_cloture, 'date')}
+      ${ch('k-places', 'Nombre de places', c.places, 'number', false, 'min="0"')}
+      ${ch('k-lien', "Lien d'inscription ou d'infos", c.inscription_lien, 'url')}
+      ${ch('k-contact', 'Contact', c.contact, 'text', true)}
+    </div>
+    <h3>Statut et remarques</h3>
+    <div class="grille">
+      <div class="champ"><label>Statut</label><select id="k-statut">${Object.entries(STATUTS).map(([k, v]) =>
+        `<option value="${k}" ${c.statut === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+      <div class="champ large"><label>Remarques</label><textarea id="k-rem">${esc(c.remarques)}</textarea></div>
+    </div>
+    <div class="actions">
+      <button onclick="app.enregistrerConcours('${esc(id)}')">Enregistrer</button>
+      <button class="secondaire" onclick="location.hash='#mes-concours'">Annuler</button>
+    </div>
+  </div>`;
+}
+
+// ---------- vue : administration ----------
+const CONFIG_LISTES = {
+  familles: { titre: 'Familles d\'épreuves', champs: [['nom', 'Nom', 'text'], ['ordre', 'Ordre', 'number'], ['actif', 'Active', 'checkbox']] },
+  niveaux: { titre: 'Épreuves / niveaux', champs: [['famille_id', 'Famille', 'famille'], ['nom', 'Nom', 'text'], ['ordre', 'Ordre', 'number'], ['actif', 'Active', 'checkbox']] },
+  championnats: { titre: 'Championnats', champs: [['nom', 'Nom', 'text'], ['ordre', 'Ordre', 'number'], ['actif', 'Actif', 'checkbox']] },
+  juges: { titre: 'Juges officiels', champs: [['nom', 'Nom', 'text'], ['secteur', 'Secteur', 'text'], ['actif', 'Actif', 'checkbox']] },
+};
+function champListe(table, idLigne, [nom, , type], val) {
+  const idc = `l-${table}-${idLigne}-${nom}`;
+  if (type === 'checkbox') return `<input type="checkbox" id="${idc}" style="width:auto" ${val ? 'checked' : ''}>`;
+  if (type === 'famille') return `<select id="${idc}">${etat.familles.map(f => `<option value="${f.id}" ${f.id === val ? 'selected' : ''}>${esc(f.nom)}</option>`).join('')}</select>`;
+  return `<input id="${idc}" type="${type}" value="${esc(val)}">`;
+}
+function editeurListe(table) {
+  const cfg = CONFIG_LISTES[table];
+  let lignes = etat[table].slice();
+  if (table === 'niveaux') lignes.sort((a, b) => (famille(a.famille_id)?.ordre ?? 0) - (famille(b.famille_id)?.ordre ?? 0) || a.ordre - b.ordre);
+  const entete = cfg.champs.map(c => `<th>${c[1]}</th>`).join('') + '<th></th>';
+  const corps = lignes.map(l => `<tr>${cfg.champs.map(c => `<td>${champListe(table, l.id, c, l[c[0]])}</td>`).join('')}
+    <td style="white-space:nowrap"><button class="petit" onclick="app.majLigne('${table}', ${l.id})">OK</button>
+    <button class="petit danger" onclick="app.supprLigne('${table}', ${l.id})">X</button></td></tr>`).join('');
+  const defauts = { ordre: 0, actif: true, famille_id: etat.familles[0]?.id };
+  const ajout = `<tr>${cfg.champs.map(c => `<td>${champListe(table, 'nouveau', c, defauts[c[0]] ?? '')}</td>`).join('')}
+    <td><button class="petit" onclick="app.ajoutLigne('${table}')">Ajouter</button></td></tr>`;
+  return `<h3>${cfg.titre}</h3><div class="tableau"><table><tr>${entete}</tr>${corps}${ajout}</table></div>
+    <p class="sous">Conseil : plutôt que supprimer un élément déjà utilisé, décoche "Actif" pour le masquer des formulaires.</p>`;
+}
+function vueAdmin() {
+  if (!estAdmin()) { location.hash = '#calendrier'; return ''; }
+  const o = etat.ongletAdmin;
+  const onglet = (k, t) => `<button class="${o === k ? 'actif' : ''}" onclick="app.ongletAdmin('${k}')">${t}</button>`;
+  let corps = '';
+  if (o === 'comptes') {
+    const comptes = etat.comptes || [];
+    const attente = comptes.filter(c => c.statut === 'en_attente').length;
+    corps = `<p class="sous">${attente} compte(s) en attente de validation.</p><div class="tableau"><table>
+      <tr><th>Club</th><th>Responsable</th><th>Email</th><th>Inscrit le</th><th>Statut</th><th>Role</th></tr>
+      ${comptes.map(c => `<tr>
+        <td>${esc(c.nom_club || '(sans nom)')}</td><td>${esc(c.responsable)}</td><td>${esc(c.email)}</td>
+        <td>${esc(new Date(c.created_at).toLocaleDateString('fr-FR'))}</td>
+        <td><select onchange="app.majCompte('${c.id}', 'statut', this.value)">${[['en_attente', 'En attente'], ['valide', 'Validé'], ['refuse', 'Refusé']]
+          .map(([k, v]) => `<option value="${k}" ${c.statut === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+        <td><select onchange="app.majCompte('${c.id}', 'role', this.value)">${[['organisateur', 'Organisateur'], ['admin', 'Admin']]
+          .map(([k, v]) => `<option value="${k}" ${c.role === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
+      </tr>`).join('')}</table></div>`;
+  } else {
+    corps = editeurListe(o === 'epreuves' ? 'familles' : o) + (o === 'epreuves' ? editeurListe('niveaux') : '');
+  }
+  return `<h2>Administration</h2>${blocMessage()}
+    <div class="onglets">${onglet('comptes', 'Comptes')}${onglet('epreuves', 'Épreuves')}${onglet('championnats', 'Championnats')}${onglet('juges', 'Juges')}</div>
+    ${corps}`;
+}
+
+// ---------- rendu ----------
+async function rendre() {
+  menu();
+  const h = location.hash || '#calendrier';
+  let html;
+  if (h === '#connexion' || h === '#inscription' || h === '#oubli') html = vueConnexion(h.slice(1));
+  else if (h === '#nouveau-mdp') html = vueNouveauMdp();
+  else if (h === '#fiche') html = vueFiche();
+  else if (h === '#mes-concours') html = vueMesConcours();
+  else if (h.startsWith('#concours/')) html = vueFormConcours(h.slice(10));
+  else if (h === '#admin') {
+    if (estAdmin() && etat.ongletAdmin === 'comptes' && !etat.comptes) await chargerComptes();
+    html = vueAdmin();
+  }
+  else html = vueCalendrier();
+  if (html !== '') document.getElementById('vue').innerHTML = html;
+}
+async function chargerComptes() {
+  const { data, error } = await sb.from('organisateurs').select('*').order('created_at', { ascending: false });
+  if (error) message('err', traduireErreur(error)); else etat.comptes = data;
+}
+async function action(fn) {
+  etat.message = null;
+  try { await fn(); } catch (e) { message('err', traduireErreur(e)); }
+  await rendre();
+  window.scrollTo(0, 0);
+}
+
+// ---------- actions ----------
+window.app = {
+  filtre(k, v) { etat.filtres[k] = v; if (k === 'famille') etat.filtres.niveau = ''; rendre(); },
+  vueCal(v) { etat.vueCal = v; rendre(); },
+  mois(delta) {
+    const m = etat.moisAffiche;
+    etat.moisAffiche = delta === 0 ? debutMois(new Date()) : new Date(m.getFullYear(), m.getMonth() + delta, 1);
+    rendre();
+  },
+  detail(id) {
+    const c = etat.concours.find(x => x.id === id); if (!c) return;
+    document.getElementById('fenetre-contenu').innerHTML = detailHtml(c);
+    document.getElementById('fenetre').classList.add('visible');
+  },
+  fermer() { document.getElementById('fenetre').classList.remove('visible'); },
+
+  connexion: () => action(async () => {
+    const { error } = await sb.auth.signInWithPassword({ email: valeur('c-email'), password: document.getElementById('c-mdp').value });
+    if (error) throw error;
+    location.hash = '#fiche';
+  }),
+  inscription: () => action(async () => {
+    const club = valeur('i-club'), email = valeur('i-email'), mdp = document.getElementById('i-mdp').value;
+    if (!club) throw new Error('Indique le nom du club.');
+    if (mdp.length < 8) throw new Error('Le mot de passe doit faire au moins 8 caractères.');
+    const { error } = await sb.auth.signUp({ email, password: mdp,
+      options: { data: { nom_club: club }, emailRedirectTo: location.origin + location.pathname } });
+    if (error) throw error;
+    message('ok', 'Compte créé ! Clique sur le lien de confirmation recu par mail, puis connecte-toi.');
+    location.hash = '#connexion';
+  }),
+  oubli: () => action(async () => {
+    const { error } = await sb.auth.resetPasswordForEmail(valeur('o-email'), { redirectTo: location.origin + location.pathname });
+    if (error) throw error;
+    message('ok', 'Si un compte existe avec cet email, un lien vient de t\'être envoyé.');
+  }),
+  nouveauMdp: () => action(async () => {
+    const mdp = document.getElementById('n-mdp').value;
+    if (mdp.length < 8) throw new Error('Le mot de passe doit faire au moins 8 caractères.');
+    const { error } = await sb.auth.updateUser({ password: mdp });
+    if (error) throw error;
+    message('ok', 'Mot de passe modifié.');
+    location.hash = '#fiche';
+  }),
+  deconnexion: async () => { await sb.auth.signOut(); location.hash = '#calendrier'; },
+
+  enregistrerFiche: () => action(async () => {
+    if (!valeur('f-club')) throw new Error('Le nom du club est obligatoire.');
+    const maj = {
+      nom_club: valeur('f-club'), responsable: ouNull(valeur('f-resp')), email: ouNull(valeur('f-email')),
+      telephone: ouNull(valeur('f-tel')), region: ouNull(valeur('f-region')), departement: ouNull(valeur('f-dep')),
+      commune_habituelle: ouNull(valeur('f-commune')), adresse_habituelle: ouNull(valeur('f-adresse')),
+      site_web: ouNull(valeur('f-site')), epreuves_proposees: cochees('f-niv'),
+    };
+    const { error } = await sb.from('organisateurs').update(maj).eq('id', etat.session.user.id);
+    if (error) throw error;
+    await chargerProfil();
+    message('ok', 'Fiche enregistrée.');
+  }),
+
+  enregistrerConcours: (id) => action(async () => {
+    const d = {
+      titre: ouNull(valeur('k-titre')), date_debut: valeur('k-debut'), date_fin: ouNull(valeur('k-fin')),
+      commune: valeur('k-commune'), departement: ouNull(valeur('k-dep')), region: ouNull(valeur('k-region')),
+      adresse: ouNull(valeur('k-adresse')), niveaux: cochees('k-niv'), juges: cochees('k-juge'),
+      juge_autre: ouNull(valeur('k-juge-autre')), championnats: cochees('k-champ'),
+      inscription_ouverture: ouNull(valeur('k-ouv')), inscription_cloture: ouNull(valeur('k-clo')),
+      places: valeur('k-places') === '' ? null : Number(valeur('k-places')),
+      inscription_lien: ouNull(valeur('k-lien')), contact: ouNull(valeur('k-contact')),
+      statut: valeur('k-statut'), remarques: ouNull(valeur('k-rem')),
+    };
+    if (!d.date_debut || !d.commune) throw new Error('La date de début et la commune sont obligatoires.');
+    if (d.date_fin && d.date_fin < d.date_debut) throw new Error('La date de fin est avant la date de début.');
+    if (d.inscription_ouverture && d.inscription_cloture && d.inscription_cloture < d.inscription_ouverture)
+      throw new Error("La clôture des inscriptions est avant l'ouverture.");
+    if (!d.niveaux.length) throw new Error('Coche au moins une épreuve.');
+    const req = id === 'nouveau' ? sb.from('concours').insert(d) : sb.from('concours').update(d).eq('id', Number(id));
+    const { error } = await req;
+    if (error) throw error;
+    await chargerConcours();
+    message('ok', 'Concours enregistré.');
+    location.hash = '#mes-concours';
+  }),
+  dupliquer(id) {
+    const c = etat.concours.find(x => x.id === id); if (!c) return;
+    const { id: _i, organisateur_id, organisateur, created_at, updated_at, ...copie } = c;
+    etat.modele = { ...copie, date_debut: '', date_fin: '', inscription_ouverture: '', inscription_cloture: '', statut: 'provisoire' };
+    location.hash = '#concours/nouveau';
+  },
+  supprimerConcours: (id) => {
+    if (!confirm('Supprimer définitivement ce concours ?')) return;
+    action(async () => {
+      const { error } = await sb.from('concours').delete().eq('id', id);
+      if (error) throw error;
+      await chargerConcours();
+      message('ok', 'Concours supprimé.');
+    });
+  },
+  basculerTous() { etat.tousConcours = !etat.tousConcours; rendre(); },
+
+  ongletAdmin: (o) => action(async () => {
+    etat.ongletAdmin = o;
+    if (o === 'comptes') await chargerComptes();
+  }),
+  majCompte: (id, champ, val) => action(async () => {
+    const { error } = await sb.from('organisateurs').update({ [champ]: val }).eq('id', id);
+    if (error) throw error;
+    await chargerComptes();
+    if (id === etat.session.user.id) await chargerProfil();
+    message('ok', 'Compte mis à jour.');
+  }),
+  majLigne: (table, id) => action(async () => {
+    const { error } = await sb.from(table).update(lireLigne(table, id)).eq('id', id);
+    if (error) throw error;
+    await chargerReferences();
+    message('ok', 'Enregistré.');
+  }),
+  ajoutLigne: (table) => action(async () => {
+    const d = lireLigne(table, 'nouveau');
+    if (!d.nom) throw new Error('Le nom est obligatoire.');
+    const { error } = await sb.from(table).insert(d);
+    if (error) throw error;
+    await chargerReferences();
+    message('ok', 'Ajouté.');
+  }),
+  supprLigne: (table, id) => {
+    if (!confirm('Supprimer cet élément ? (Les concours qui l\'utilisent ne l\'afficheront plus.)')) return;
+    action(async () => {
+      const { error } = await sb.from(table).delete().eq('id', id);
+      if (error) throw error;
+      await chargerReferences();
+      message('ok', 'Supprimé.');
+    });
+  },
+};
+function lireLigne(table, id) {
+  const d = {};
+  for (const [nom, , type] of CONFIG_LISTES[table].champs) {
+    const el = document.getElementById(`l-${table}-${id}-${nom}`);
+    if (type === 'checkbox') d[nom] = el.checked;
+    else if (type === 'number' || type === 'famille') d[nom] = Number(el.value) || 0;
+    else d[nom] = el.value.trim() || null;
+  }
+  return d;
+}
+
+// ---------- demarrage ----------
+window.addEventListener('hashchange', () => {
+  app.fermer();
+  if (etat.message?.page && etat.message.page !== location.hash) etat.message = null;
+  rendre();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') app.fermer(); });
+
+sb.auth.onAuthStateChange((evenement, session) => {
+  // setTimeout : ne pas appeler Supabase directement dans ce rappel
+  setTimeout(async () => {
+    etat.session = session;
+    etat.comptes = null;
+    if (evenement === 'PASSWORD_RECOVERY') location.hash = '#nouveau-mdp';
+    try { await chargerProfil(); await chargerConcours(); } catch (e) { message('err', traduireErreur(e)); }
+    rendre();
+  }, 0);
+});
+
+(async () => {
+  if (SUPABASE_URL.includes('VOTRE-PROJET')) {
+    document.getElementById('vue').innerHTML = '<div class="msg err">Configuration manquante : renseigne SUPABASE_URL et SUPABASE_KEY en haut du script (voir le guide de mise en ligne).</div>';
+    return;
+  }
+  try {
+    const { data } = await sb.auth.getSession();
+    etat.session = data.session;
+    await Promise.all([chargerReferences(), chargerConcours(), chargerProfil()]);
+  } catch (e) { message('err', 'Impossible de charger les données : ' + traduireErreur(e)); }
+  rendre();
+})();
+</script>
+</body>
+</html>
