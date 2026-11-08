@@ -108,18 +108,39 @@
   td input, td select { padding: 4px 6px; }
   .tableau { overflow-x: auto; }
   /* calendrier mensuel */
-  .cal-nav { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
-  .cal-nav .t { font-weight: 700; text-transform: capitalize; min-width: 150px; text-align: center; }
-  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-  .cal .jsem { font-size: .8rem; text-align: center; color: var(--gris); padding: 4px 0; }
-  .cal .case { background: #fff; min-height: 86px; border: 1px solid var(--bord); border-radius: 4px; padding: 3px; overflow: hidden; }
-  .cal .case.hors { background: #f1eee6; }
-  .cal .case.auj { border-color: var(--vert); border-width: 2px; }
-  .cal .num { font-size: .78rem; color: var(--gris); }
-  .cal .puce { display: block; font-size: .72rem; background: var(--vert); color: #fff; border-radius: 3px;
-               padding: 1px 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
-  .cal .puce.annule { background: var(--rouge); text-decoration: line-through; }
-  .cal .puce.provisoire { background: var(--bleu); }
+  .cal-nav { display: flex; align-items: center; gap: 10px; margin: 10px 0; flex-wrap: wrap; }
+  .cal-nav .t { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; text-transform: capitalize; min-width: 190px; text-align: center; }
+  main.large { max-width: 1400px; }
+  .mg { border: 1px solid var(--bord); border-radius: 10px; overflow: hidden; background: #fff; }
+  .mg-entete { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--vert); color: #fff; }
+  .mg-entete div { padding: 8px; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; text-align: center; }
+  .mg-semaine { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: 26px repeat(var(--n), 24px) 1fr;
+                min-height: 130px; border-top: 1px solid var(--bord); position: relative; row-gap: 3px; padding-bottom: 6px; }
+  .mg-jour { grid-row: 1 / -1; border-left: 1px solid var(--bord); padding: 4px 6px; background: #fff; }
+  .mg-jour:first-child { border-left: 0; }
+  .mg-jour.hors { background: #f6f4ef; }
+  .mg-jour.hors .n { color: #b3afa6; }
+  .mg-jour.we { background: #fbfaf7; }
+  .mg-jour.auj { box-shadow: inset 0 0 0 2px var(--bronze); }
+  .mg-jour .n { font-size: .85rem; font-weight: 600; color: var(--gris); }
+  .mg-jour.auj .n { color: var(--bronze); }
+  .barre { z-index: 1; margin: 0 4px; border-radius: 5px; color: #fff; font-size: .78rem; line-height: 24px; height: 24px;
+           padding: 0 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+           box-shadow: 0 1px 2px rgba(0,0,0,.15); align-self: start; }
+  .barre:hover { filter: brightness(1.1); }
+  .barre.suite-g { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+  .barre.suite-d { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+  .barre.provisoire, .leg-ech.provisoire { background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.38) 0 5px, transparent 5px 10px); }
+  .barre.annule, .leg-ech.annule { opacity: .5; text-decoration: line-through; }
+  .barre .q { display: inline-block; background: #fff; color: #6b2c84; border-radius: 3px; font-size: .68rem; font-weight: 700;
+              line-height: 15px; padding: 0 4px; margin-right: 5px; vertical-align: 1px; }
+  .barre .autres { display: inline-flex; gap: 2px; margin-left: 5px; vertical-align: 0; }
+  .barre .autres i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid #fff; display: inline-block; }
+  .mg-entete .court { display: none; }
+  .legende { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 12px 0 4px; font-size: .85rem; align-items: center; }
+  .legende .groupe { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
+  .legende .titre-leg { font-weight: 600; color: var(--gris); margin-right: 2px; }
+  .leg-ech { display: inline-block; width: 26px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; background-color: #7b827d; }
   /* fenetre detail */
   #fenetre { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: flex-start;
              justify-content: center; padding: 30px 12px; overflow-y: auto; z-index: 10; }
@@ -136,8 +157,13 @@
   @media (max-width: 640px) {
     .filtres label { flex: 1 1 100%; }
     .filtres input, .filtres select { width: 100%; }
-    .cal .case { min-height: 60px; }
-    .cal .puce { font-size: .65rem; }
+    .mg-entete div { padding: 6px 2px; font-size: .68rem; letter-spacing: 0; }
+    .mg-entete .long { display: none; }
+    .mg-entete .court { display: inline; }
+    .mg-semaine { grid-template-rows: 22px repeat(var(--n), 20px) 1fr; min-height: 90px; }
+    .mg-jour { padding: 2px 3px; }
+    .barre { font-size: .62rem; line-height: 20px; height: 20px; padding: 0 3px; margin: 0 1px; }
+    .barre .q, .barre .autres { display: none; }
     dl { grid-template-columns: 1fr; }
     .marque img { width: 38px; height: 38px; }
     .marque .t1 { font-size: 1rem; }
@@ -188,7 +214,7 @@ const etat = {
   session: null, profil: null,
   familles: [], niveaux: [], championnats: [], juges: [], concours: [],
   filtres: { famille: '', niveau: '', region: '', texte: '', passes: false },
-  vueCal: 'liste', moisAffiche: debutMois(new Date()),
+  moisAffiche: debutMois(new Date()),
   ongletAdmin: 'comptes', tousConcours: false, message: null,
 };
 
@@ -206,6 +232,17 @@ function fmt(s, opts = { day: 'numeric', month: 'long', year: 'numeric' }) {
 function fmtPeriode(c) {
   if (!c.date_fin || c.date_fin === c.date_debut) return fmt(c.date_debut, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   return 'du ' + fmt(c.date_debut, { day: 'numeric', month: 'long' }) + ' au ' + fmt(c.date_fin);
+}
+const COULEURS_DEFAUT = ['#3f7d4e', '#b5473a', '#2f6690', '#7a4d9c', '#a8732f', '#6b7280', '#2a8a8a', '#8a5a44'];
+function couleurFamille(f) {
+  if (!f) return '#7b827d';
+  if (f.couleur) return f.couleur;
+  const i = etat.familles.findIndex(x => x.id === f.id);
+  return COULEURS_DEFAUT[(i < 0 ? 0 : i) % COULEURS_DEFAUT.length];
+}
+function famillesConcours(c) {
+  const ids = [...new Set((c.niveaux || []).map(id => niveau(id)?.famille_id).filter(Boolean))];
+  return ids.map(famille).filter(Boolean).sort((a, b) => a.ordre - b.ordre);
 }
 function niveau(id) { return etat.niveaux.find(n => n.id === id); }
 function famille(id) { return etat.familles.find(f => f.id === id); }
@@ -298,7 +335,7 @@ async function chargerProfil() {
 function menu() {
   const h = location.hash || '#calendrier';
   const lien = (href, txt) => `<a href="${href}" class="${h.startsWith(href) ? 'actif' : ''}">${txt}</a>`;
-  let html = lien('#calendrier', 'Calendrier');
+  let html = lien('#calendrier', 'Calendrier') + lien('#mois', 'Vue mensuelle');
   if (estConnecte()) {
     html += lien('#fiche', 'Ma fiche');
     if (estValide()) html += lien('#mes-concours', 'Mes concours');
@@ -354,13 +391,13 @@ function blocAVenir() {
       <div class="tags">${badgesConcours(c)}</div>
     </div>`).join('')}</div>`;
 }
-function vueCalendrier() {
+function vueCalendrier(modeMois = false) {
   const f = etat.filtres;
   const optF = etat.familles.filter(x => x.actif).map(x => `<option value="${x.id}" ${String(x.id) === f.famille ? 'selected' : ''}>${esc(x.nom)}</option>`).join('');
   const nivDispo = etat.niveaux.filter(n => n.actif && (!f.famille || n.famille_id === Number(f.famille)));
   const optN = nivDispo.map(n => `<option value="${n.id}" ${String(n.id) === f.niveau ? 'selected' : ''}>${esc(nomNiveau(n.id))}</option>`).join('');
   const optR = REGIONS.map(r => `<option ${r === f.region ? 'selected' : ''}>${esc(r)}</option>`).join('');
-  let html = blocAVenir() + `<div class="section-titre" id="calendrier-complet"><h2>Calendrier des concours</h2></div>
+  let html = (modeMois ? '' : blocAVenir()) + `<div class="section-titre" id="calendrier-complet"><h2>${modeMois ? 'Calendrier mensuel' : 'Calendrier des concours'}</h2></div>
   <div class="carte filtres">
     <label>Famille<select onchange="app.filtre('famille', this.value)"><option value="">Toutes</option>${optF}</select></label>
     <label>Épreuve<select onchange="app.filtre('niveau', this.value)"><option value="">Toutes</option>${optN}</select></label>
@@ -368,11 +405,11 @@ function vueCalendrier() {
     <label>Recherche<input type="search" placeholder="Commune, club..." value="${esc(f.texte)}" onchange="app.filtre('texte', this.value)"></label>
     <label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" style="width:auto" ${f.passes ? 'checked' : ''} onchange="app.filtre('passes', this.checked)"> Concours passés</label>
     <div style="margin-left:auto;display:flex;gap:6px">
-      <button class="${etat.vueCal === 'liste' ? '' : 'secondaire'}" onclick="app.vueCal('liste')">Liste</button>
-      <button class="${etat.vueCal === 'mois' ? '' : 'secondaire'}" onclick="app.vueCal('mois')">Mois</button>
+      <button class="${modeMois ? 'secondaire' : ''}" onclick="location.hash='#calendrier'">Liste</button>
+      <button class="${modeMois ? '' : 'secondaire'}" onclick="location.hash='#mois'">Mois</button>
     </div>
   </div>`;
-  html += etat.vueCal === 'liste' ? vueListe() : vueMois();
+  html += modeMois ? vueMois() : vueListe();
   return html;
 }
 function carteConcours(c, avecActions = false) {
@@ -405,31 +442,65 @@ function vueListe() {
 }
 function vueMois() {
   const m = etat.moisAffiche;
-  // en vue mois, on montre aussi les concours passes du mois affiche
   const tous = etat.concours.filter(concoursFiltresSansDate);
   const premier = new Date(m.getFullYear(), m.getMonth(), 1);
-  const decal = (premier.getDay() + 6) % 7;
-  const debut = new Date(premier); debut.setDate(1 - decal);
+  const debut = new Date(premier); debut.setDate(1 - (premier.getDay() + 6) % 7);
+  const dernier = new Date(m.getFullYear(), m.getMonth() + 1, 0);
   const t = aujourdhui();
-  let html = `<div class="cal-nav"><button class="secondaire petit" onclick="app.mois(-1)">&lsaquo;</button>
+  let html = `<div class="cal-nav"><button class="secondaire petit" onclick="app.mois(-1)">&lsaquo; Préc.</button>
     <div class="t">${esc(m.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }))}</div>
-    <button class="secondaire petit" onclick="app.mois(1)">&rsaquo;</button>
-    <button class="secondaire petit" onclick="app.mois(0)">Aujourd'hui</button></div><div class="cal">`;
-  for (const j of ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']) html += `<div class="jsem">${j}</div>`;
-  for (let i = 0; i < 42; i++) {
-    const d = new Date(debut); d.setDate(debut.getDate() + i);
-    const iso = isoLocal(d);
-    const ev = tous.filter(c => c.date_debut <= iso && (c.date_fin || c.date_debut) >= iso);
-    html += `<div class="case ${d.getMonth() !== m.getMonth() ? 'hors' : ''} ${iso === t ? 'auj' : ''}">
-      <div class="num">${d.getDate()}</div>
-      ${ev.map(c => `<span class="puce ${c.statut === 'annule' ? 'annule' : c.statut === 'provisoire' ? 'provisoire' : ''}" title="${esc(titreConcours(c))}" onclick="app.detail(${c.id})">${esc(c.commune)}</span>`).join('')}
-    </div>`;
-    if (i === 34) {
-      const suivant = new Date(debut); suivant.setDate(debut.getDate() + 35);
-      if (suivant.getMonth() !== m.getMonth()) break;
+    <button class="secondaire petit" onclick="app.mois(1)">Suiv. &rsaquo;</button>
+    <button class="secondaire petit" onclick="app.mois(0)">Aujourd'hui</button></div>
+    <div class="mg"><div class="mg-entete">${['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'].map(j => `<div><span class="long">${j}</span><span class="court">${j.slice(0, 3)}</span></div>`).join('')}</div>`;
+  const semaine = new Date(debut);
+  while (semaine <= dernier) {
+    const jours = [...Array(7)].map((_, i) => { const d = new Date(semaine); d.setDate(semaine.getDate() + i); return d; });
+    const d0 = isoLocal(jours[0]), d6 = isoLocal(jours[6]);
+    // concours qui touchent cette semaine, places en "couloirs" pour ne pas se chevaucher
+    const ev = tous.filter(c => c.date_debut <= d6 && (c.date_fin || c.date_debut) >= d0)
+      .map(c => {
+        const deb = c.date_debut < d0 ? d0 : c.date_debut, fin = (c.date_fin || c.date_debut) > d6 ? d6 : (c.date_fin || c.date_debut);
+        const col = j => jours.findIndex(x => isoLocal(x) === j);
+        return { c, s: col(deb), e: col(fin), suiteG: c.date_debut < d0, suiteD: (c.date_fin || c.date_debut) > d6 };
+      })
+      .sort((a, b) => a.s - b.s || (b.e - b.s) - (a.e - a.s));
+    const couloirs = [];
+    for (const x of ev) {
+      let k = couloirs.findIndex(fin => fin < x.s);
+      if (k < 0) { k = couloirs.length; couloirs.push(-1); }
+      couloirs[k] = x.e; x.k = k;
     }
+    html += `<div class="mg-semaine" style="--n:${Math.max(couloirs.length, 1)}">`;
+    jours.forEach((d, i) => {
+      const iso = isoLocal(d);
+      html += `<div class="mg-jour ${d.getMonth() !== m.getMonth() ? 'hors' : ''} ${i >= 5 ? 'we' : ''} ${iso === t ? 'auj' : ''}" style="grid-column:${i + 1}"><span class="n">${d.getDate()}</span></div>`;
+    });
+    for (const x of ev) {
+      const c = x.c, fams = famillesConcours(c);
+      const nivs = (c.niveaux || []).map(id => niveau(id)?.nom).filter(Boolean).join(', ');
+      const qualif = (c.championnats || []).length ? '<span class="q">Q</span>' : '';
+      const autres = fams.length > 1 ? `<span class="autres">${fams.slice(1).map(f => `<i style="background:${couleurFamille(f)}"></i>`).join('')}</span>` : '';
+      const classes = ['barre', c.statut === 'provisoire' ? 'provisoire' : '', c.statut === 'annule' ? 'annule' : '', x.suiteG ? 'suite-g' : '', x.suiteD ? 'suite-d' : ''].join(' ');
+      html += `<div class="${classes}" style="grid-column:${x.s + 1} / ${x.e + 2}; grid-row:${x.k + 2}; background-color:${couleurFamille(fams[0])}"
+        title="${esc(titreConcours(c) + ' - ' + fmtPeriode(c) + (nivs ? ' - ' + nivs : ''))}" onclick="app.detail(${c.id})">${qualif}${esc(c.commune)}${nivs ? ' · ' + esc(nivs) : ''}${autres}</div>`;
+    }
+    html += '</div>';
+    semaine.setDate(semaine.getDate() + 7);
   }
-  return html + '</div><p class="sous">Vert : confirmé - Bleu : date provisoire - Rouge : annulé. Clique sur un concours pour le détail.</p>';
+  html += '</div>';
+  const familles = etat.familles.filter(f => f.actif);
+  html += `<div class="legende">
+    <div class="groupe"><span class="titre-leg">Familles :</span>${familles.map(f => `<span><span class="leg-ech" style="background-color:${couleurFamille(f)}"></span>${esc(f.nom)}</span>`).join('')}</div>
+  </div><div class="legende">
+    <div class="groupe"><span class="titre-leg">Statut :</span>
+      <span><span class="leg-ech"></span>Confirmé</span>
+      <span><span class="leg-ech provisoire"></span>Date provisoire</span>
+      <span><span class="leg-ech annule"></span>Annulé</span>
+      <span><span class="barre" style="display:inline-block;background:#7b827d;padding:0 5px;height:20px;line-height:20px"><span class="q" style="display:inline-block">Q</span></span> Qualificatif</span>
+      <span><span class="barre" style="display:inline-block;background:#7b827d;padding:0 5px;height:20px;line-height:20px"><span class="autres" style="display:inline-flex;margin:0"><i style="background:#2f6690"></i></span></span> Autre famille au même concours</span>
+    </div></div>
+    <p class="sous">Clique sur un concours pour voir le détail.</p>`;
+  return html;
 }
 function concoursFiltresSansDate(c) {
   const sauv = etat.filtres.passes; etat.filtres.passes = true;
@@ -613,7 +684,7 @@ function vueFormConcours(id) {
 
 // ---------- vue : administration ----------
 const CONFIG_LISTES = {
-  familles: { titre: 'Familles d\'épreuves', champs: [['nom', 'Nom', 'text'], ['ordre', 'Ordre', 'number'], ['actif', 'Active', 'checkbox']] },
+  familles: { titre: 'Familles d\'épreuves', champs: [['nom', 'Nom', 'text'], ['couleur', 'Couleur', 'color'], ['ordre', 'Ordre', 'number'], ['actif', 'Active', 'checkbox']] },
   niveaux: { titre: 'Épreuves / niveaux', champs: [['famille_id', 'Famille', 'famille'], ['nom', 'Nom', 'text'], ['ordre', 'Ordre', 'number'], ['actif', 'Active', 'checkbox']] },
   championnats: { titre: 'Championnats', champs: [['nom', 'Nom', 'text'], ['ordre', 'Ordre', 'number'], ['actif', 'Actif', 'checkbox']] },
   juges: { titre: 'Juges officiels', champs: [['nom', 'Nom', 'text'], ['secteur', 'Secteur', 'text'], ['actif', 'Actif', 'checkbox']] },
@@ -622,6 +693,10 @@ function champListe(table, idLigne, [nom, , type], val) {
   const idc = `l-${table}-${idLigne}-${nom}`;
   if (type === 'checkbox') return `<input type="checkbox" id="${idc}" style="width:auto" ${val ? 'checked' : ''}>`;
   if (type === 'famille') return `<select id="${idc}">${etat.familles.map(f => `<option value="${f.id}" ${f.id === val ? 'selected' : ''}>${esc(f.nom)}</option>`).join('')}</select>`;
+  if (type === 'color') {
+    const f = table === 'familles' && idLigne !== 'nouveau' ? famille(idLigne) : null;
+    return `<input id="${idc}" type="color" style="width:56px;height:32px;padding:2px" value="${esc(val || (f ? couleurFamille(f) : '#6b7280'))}">`;
+  }
   return `<input id="${idc}" type="${type}" value="${esc(val)}">`;
 }
 function editeurListe(table) {
@@ -678,7 +753,9 @@ async function rendre() {
     if (estAdmin() && etat.ongletAdmin === 'comptes' && !etat.comptes) await chargerComptes();
     html = vueAdmin();
   }
+  else if (h === '#mois') html = vueCalendrier(true);
   else html = vueCalendrier();
+  document.getElementById('vue').classList.toggle('large', h === '#mois');
   const accueil = h === '#calendrier';
   const bandeau = accueil ? bandeauAccueil() : '';
   if (bandeau !== etat.dernierBandeau) { document.getElementById('bandeau').innerHTML = bandeau; etat.dernierBandeau = bandeau; }
@@ -698,7 +775,6 @@ async function action(fn) {
 // ---------- actions ----------
 window.app = {
   filtre(k, v) { etat.filtres[k] = v; if (k === 'famille') etat.filtres.niveau = ''; rendre(); },
-  vueCal(v) { etat.vueCal = v; rendre(); },
   mois(delta) {
     const m = etat.moisAffiche;
     etat.moisAffiche = delta === 0 ? debutMois(new Date()) : new Date(m.getFullYear(), m.getMonth() + delta, 1);
