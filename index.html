@@ -3,25 +3,55 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Agenda des concours de chiens de troupeau</title>
+<title>Agenda des concours Troupeau - Société Canine Midi Côte d'Azur</title>
+<meta name="description" content="Calendrier commun des concours de chiens de troupeau de la Société Canine Midi Côte d'Azur.">
+<link rel="icon" type="image/png" href="img/favicon.png">
 <style>
   :root {
-    --vert: #2f5d3a; --vert-clair: #e6efe7; --sable: #f7f4ee; --texte: #222;
-    --gris: #6b6b6b; --bord: #d9d4c7; --rouge: #a33a2a; --orange: #b86b12; --bleu: #2c5f8a;
+    --vert: #2f3a35; --vert-clair: #eceae4; --sable: #f8f7f4; --texte: #1f2421;
+    --gris: #6a6f6b; --bord: #e2ded5; --rouge: #9e3b2c; --orange: #a8651a; --bleu: #3d5a73;
+    --bronze: #9c6f35; --bronze-clair: #f4ebdd;
+    --serif: Georgia, "Times New Roman", serif;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-         background: var(--sable); color: var(--texte); line-height: 1.45; }
-  header { background: var(--vert); color: #fff; padding: 12px 16px; }
+         background: var(--sable); color: var(--texte); line-height: 1.5; }
+  header { background: #fff; border-bottom: 1px solid var(--bord); padding: 8px 16px;
+           position: sticky; top: 0; z-index: 5; }
   header .ligne { max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap;
                   align-items: center; gap: 8px 16px; justify-content: space-between; }
-  header h1 { font-size: 1.15rem; margin: 0; }
-  nav { display: flex; flex-wrap: wrap; gap: 6px; }
-  nav a, nav button { color: #fff; text-decoration: none; padding: 6px 10px; border-radius: 6px;
-                      background: rgba(255,255,255,.12); border: 0; font: inherit; cursor: pointer; }
-  nav a.actif { background: rgba(255,255,255,.3); }
+  .marque { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+  .marque img { width: 48px; height: 48px; }
+  .marque .t1 { font-family: var(--serif); font-size: 1.15rem; font-weight: 700; line-height: 1.2; }
+  .marque .t2 { font-size: .72rem; color: var(--bronze); letter-spacing: .08em; text-transform: uppercase; }
+  nav { display: flex; flex-wrap: wrap; gap: 4px; }
+  nav a, nav button { color: var(--texte); text-decoration: none; padding: 7px 11px; border-radius: 6px;
+                      background: transparent; border: 0; font: inherit; font-size: .95rem; cursor: pointer; }
+  nav a:hover, nav button:hover { background: var(--vert-clair); }
+  nav a.actif { background: var(--vert); color: #fff; }
   main { max-width: 1100px; margin: 0 auto; padding: 16px; }
-  h2 { margin: 8px 0 12px; font-size: 1.3rem; }
+  h2 { margin: 8px 0 12px; font-size: 1.45rem; font-family: var(--serif); }
+  /* accueil */
+  .hero { position: relative; color: #fff; background: #2f3a35 url(img/accueil-grand.jpg) center 60% / cover; }
+  .hero::before { content: ""; position: absolute; inset: 0;
+                  background: linear-gradient(90deg, rgba(18,22,20,.78) 0%, rgba(18,22,20,.45) 55%, rgba(18,22,20,.1) 100%); }
+  .hero .dedans { position: relative; max-width: 1100px; margin: 0 auto; padding: 64px 16px;
+                  display: flex; align-items: center; gap: 28px; min-height: 420px; }
+  .hero img { width: 150px; height: 150px; flex-shrink: 0; filter: drop-shadow(0 6px 18px rgba(0,0,0,.45)); }
+  .hero .surtitre { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: #e9d3b0; }
+  .hero h2 { font-size: 2.4rem; line-height: 1.15; margin: 6px 0 12px; color: #fff; }
+  .hero p { max-width: 560px; font-size: 1.05rem; margin: 0 0 20px; color: #f1efe9; }
+  .hero .actions button { padding: 10px 18px; }
+  .hero button.clair { background: #fff; color: var(--vert); border-color: #fff; }
+  .hero button.contour { background: transparent; color: #fff; border-color: rgba(255,255,255,.8); }
+  .a-venir { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 8px; }
+  .a-venir .carte { cursor: pointer; border-top: 3px solid var(--bronze); margin: 0; transition: box-shadow .15s; }
+  .a-venir .carte:hover { box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+  .a-venir .quand { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--bronze); font-weight: 600; }
+  .a-venir .titre { font-family: var(--serif); font-weight: 700; font-size: 1.05rem; margin: 4px 0; }
+  .section-titre { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 26px; }
+  .section-titre h2 { margin-bottom: 10px; }
+  .section-titre::after { content: none; }
   h3 { margin: 18px 0 8px; font-size: 1.05rem; }
   .carte { background: #fff; border: 1px solid var(--bord); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
   .filtres { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
@@ -99,26 +129,45 @@
   dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: 10px 0; }
   dt { color: var(--gris); font-size: .9rem; }
   dd { margin: 0; }
-  footer { text-align: center; color: var(--gris); font-size: .8rem; padding: 20px; }
+  footer { display: flex; align-items: center; justify-content: center; gap: 12px; text-align: left;
+           color: var(--gris); font-size: .82rem; padding: 26px 16px; margin-top: 30px;
+           border-top: 1px solid var(--bord); background: #fff; }
+  footer strong { color: var(--texte); font-family: var(--serif); }
   @media (max-width: 640px) {
     .filtres label { flex: 1 1 100%; }
     .filtres input, .filtres select { width: 100%; }
     .cal .case { min-height: 60px; }
     .cal .puce { font-size: .65rem; }
     dl { grid-template-columns: 1fr; }
+    .marque img { width: 38px; height: 38px; }
+    .marque .t1 { font-size: 1rem; }
+    header { position: static; }
+    .hero { background-image: url(img/accueil-petit.jpg); }
+    .hero .dedans { flex-direction: column; align-items: flex-start; gap: 14px; padding: 36px 16px; min-height: 0; }
+    .hero img { width: 84px; height: 84px; }
+    .hero h2 { font-size: 1.7rem; }
+    .hero p { font-size: .98rem; }
   }
 </style>
 </head>
 <body>
 <header>
   <div class="ligne">
-    <h1>Agenda des concours de chiens de troupeau</h1>
+    <a class="marque" href="#calendrier">
+      <img src="img/logo-96.png" alt="Logo de la Société Canine Midi Côte d'Azur">
+      <div><div class="t1">Agenda des concours Troupeau</div><div class="t2">Société Canine Midi Côte d'Azur</div></div>
+    </a>
     <nav id="menu"></nav>
   </div>
 </header>
+<div id="bandeau"></div>
 <main id="vue"><p class="vide">Chargement...</p></main>
 <div id="fenetre" onclick="if (event.target === this) app.fermer()"><div class="contenu" id="fenetre-contenu"></div></div>
-<footer>Agenda commun des clubs - les informations sont saisies par les organisateurs.</footer>
+<footer>
+  <img src="img/logo-96.png" alt="" width="44" height="44">
+  <div><strong>Société Canine Midi Côte d'Azur</strong><br>
+  Agenda commun des concours de chiens de troupeau. Les informations sont saisies par les organisateurs.</div>
+</footer>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -276,13 +325,42 @@ function concoursFiltres() {
     return true;
   });
 }
+function bandeauAccueil() {
+  const bouton2 = estValide()
+    ? `<button class="contour" onclick="location.hash='#mes-concours'">Mes concours</button>`
+    : estConnecte() ? `<button class="contour" onclick="location.hash='#fiche'">Ma fiche</button>`
+    : `<button class="contour" onclick="location.hash='#connexion'">Espace organisateur</button>`;
+  return `<section class="hero"><div class="dedans">
+    <img src="img/logo-256.png" alt="Médaille de la Société Canine Midi Côte d'Azur">
+    <div>
+      <div class="surtitre">Société Canine Midi Côte d'Azur</div>
+      <h2>Agenda des concours Troupeau</h2>
+      <p>Tous les concours de chiens de troupeau au même endroit : inter-races, spécial Border, FSDS, FCI et tests. Les dates sont saisies directement par les clubs organisateurs.</p>
+      <div class="actions">
+        <button class="clair" onclick="document.getElementById('calendrier-complet').scrollIntoView({behavior:'smooth'})">Voir le calendrier</button>
+        ${bouton2}
+      </div>
+    </div></div></section>`;
+}
+function blocAVenir() {
+  const t = aujourdhui();
+  const prochains = etat.concours.filter(c => c.statut !== 'annule' && (c.date_fin || c.date_debut) >= t).slice(0, 3);
+  if (!prochains.length) return '';
+  return `<div class="section-titre"><h2>Prochains concours</h2></div>
+    <div class="a-venir">${prochains.map(c => `<div class="carte" onclick="app.detail(${c.id})">
+      <div class="quand">${esc(fmtPeriode(c))}</div>
+      <div class="titre">${esc(titreConcours(c))}</div>
+      <div class="sous">${esc(c.commune)}${c.departement ? ' (' + esc(c.departement) + ')' : ''}${c.organisateur?.nom_club ? ' - ' + esc(c.organisateur.nom_club) : ''}</div>
+      <div class="tags">${badgesConcours(c)}</div>
+    </div>`).join('')}</div>`;
+}
 function vueCalendrier() {
   const f = etat.filtres;
   const optF = etat.familles.filter(x => x.actif).map(x => `<option value="${x.id}" ${String(x.id) === f.famille ? 'selected' : ''}>${esc(x.nom)}</option>`).join('');
   const nivDispo = etat.niveaux.filter(n => n.actif && (!f.famille || n.famille_id === Number(f.famille)));
   const optN = nivDispo.map(n => `<option value="${n.id}" ${String(n.id) === f.niveau ? 'selected' : ''}>${esc(nomNiveau(n.id))}</option>`).join('');
   const optR = REGIONS.map(r => `<option ${r === f.region ? 'selected' : ''}>${esc(r)}</option>`).join('');
-  let html = `<h2>Calendrier des concours</h2>
+  let html = blocAVenir() + `<div class="section-titre" id="calendrier-complet"><h2>Calendrier des concours</h2></div>
   <div class="carte filtres">
     <label>Famille<select onchange="app.filtre('famille', this.value)"><option value="">Toutes</option>${optF}</select></label>
     <label>Épreuve<select onchange="app.filtre('niveau', this.value)"><option value="">Toutes</option>${optN}</select></label>
@@ -601,6 +679,9 @@ async function rendre() {
     html = vueAdmin();
   }
   else html = vueCalendrier();
+  const accueil = h === '#calendrier';
+  const bandeau = accueil ? bandeauAccueil() : '';
+  if (bandeau !== etat.dernierBandeau) { document.getElementById('bandeau').innerHTML = bandeau; etat.dernierBandeau = bandeau; }
   if (html !== '') document.getElementById('vue').innerHTML = html;
 }
 async function chargerComptes() {
