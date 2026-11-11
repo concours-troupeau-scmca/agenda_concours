@@ -29,6 +29,14 @@
                       background: transparent; border: 0; font: inherit; font-size: .95rem; cursor: pointer; }
   nav a:hover, nav button:hover { background: var(--vert-clair); }
   nav a.actif { background: var(--vert); color: #fff; }
+  .compte { background: var(--bronze-clair); border-bottom: 1px solid #e6d6bc; }
+  .compte .dedans { max-width: 1100px; margin: 0 auto; padding: 8px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .95rem; }
+  .compte .qui strong { font-family: var(--serif); font-size: 1.1rem; color: var(--vert); }
+  .compte a { margin-left: auto; color: var(--bronze); font-weight: 600; }
+  .pastille { font-size: .75rem; font-weight: 600; padding: 2px 9px; border-radius: 999px; background: #fff; color: var(--vert); border: 1px solid #e6d6bc; }
+  .pastille.admin { background: var(--vert); color: #fff; border-color: var(--vert); }
+  .pastille.attente { background: #e3ecf5; color: var(--bleu); border-color: #c9d8e8; }
+  .pastille.refuse { background: #f6dedb; color: var(--rouge); border-color: #ecc4be; }
   main { max-width: 1100px; margin: 0 auto; padding: 16px; }
   h2 { margin: 8px 0 12px; font-size: 1.45rem; font-family: var(--serif); }
   /* accueil */
@@ -69,6 +77,7 @@
                     background: var(--vert); color: #fff; cursor: pointer; text-decoration: none; display: inline-block; }
   button.secondaire { background: #fff; color: var(--vert); }
   button.danger { background: #fff; color: var(--rouge); border-color: var(--rouge); }
+  button.valider { background: #2f7a3f; border-color: #2f7a3f; color: #fff; }
   button.petit { padding: 4px 9px; font-size: .85rem; }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .mois-titre { margin: 18px 0 8px; font-weight: 700; color: var(--vert); text-transform: capitalize; }
@@ -190,6 +199,7 @@
     <nav id="menu"></nav>
   </div>
 </header>
+<div id="compte"></div>
 <div id="bandeau"></div>
 <main id="vue"><p class="vide">Chargement...</p></main>
 <div id="fenetre" onclick="if (event.target === this) app.fermer()"><div class="contenu" id="fenetre-contenu"></div></div>
@@ -350,6 +360,20 @@ function menu() {
     html += lien('#connexion', 'Espace organisateur');
   }
   document.getElementById('menu').innerHTML = html;
+  // encart "connecte en tant que"
+  const p = etat.profil;
+  let compte = '';
+  if (estConnecte() && p) {
+    const role = p.role === 'admin' && p.statut === 'valide' ? '<span class="pastille admin">Admin</span>' : '<span class="pastille">Organisateur</span>';
+    const statut = p.statut === 'en_attente' ? '<span class="pastille attente">Compte en attente de validation</span>'
+      : p.statut === 'refuse' ? '<span class="pastille refuse">Compte refusé</span>' : '';
+    compte = `<div class="compte"><div class="dedans">
+      <span class="qui">Connecté en tant que <strong>${esc(p.nom_club || '(nom du club à renseigner)')}</strong></span>
+      ${role}${statut}
+      <a href="#fiche">Ma fiche</a></div></div>`;
+  }
+  const el = document.getElementById('compte');
+  if (el.innerHTML !== compte) el.innerHTML = compte;
 }
 
 // ---------- vue : calendrier public ----------
@@ -424,11 +448,18 @@ function carteConcours(c, avecActions = false) {
     .map(n => `<span class="tag">${esc(n.nom)}</span>`).join('');
   const suivi = !avecActions ? '' : c.statut === 'provisoire'
     ? `<div class="suivi">${c.demande_envoyee_le
-        ? `Demande envoyée à la SCMCA le ${esc(new Date(c.demande_envoyee_le).toLocaleDateString('fr-FR'))}. Quand tu reçois la validation par mail, passe le concours en « Validé SCMCA » (bouton Modifier).`
+        ? `Demande envoyée à la SCMCA le ${esc(new Date(c.demande_envoyee_le).toLocaleDateString('fr-FR'))}. Quand tu reçois la validation par mail, clique sur « Valider le concours ».`
         : '<strong>Demande pas encore envoyée à la SCMCA.</strong>'}</div>`
     : c.statut === 'confirme' ? '<div class="suivi ok">Validé par la SCMCA : visible sur le calendrier public.</div>' : '';
-  const boutonDemande = c.statut === 'provisoire'
-    ? `<button class="petit" onclick="event.stopPropagation(); app.envoyerDemande(${c.id})">${c.demande_envoyee_le ? 'Renvoyer la demande' : 'Envoyer la demande à la SCMCA'}</button>` : '';
+  let boutonDemande = '';
+  if (c.statut === 'provisoire' && !c.demande_envoyee_le)
+    boutonDemande = `<button class="petit" onclick="event.stopPropagation(); app.envoyerDemande(${c.id})">Envoyer la demande à la SCMCA</button>`;
+  if (c.statut === 'provisoire' && c.demande_envoyee_le)
+    boutonDemande = `<button class="petit valider" onclick="event.stopPropagation(); app.changerStatut(${c.id}, 'confirme')">Valider le concours</button>
+      <button class="petit danger" onclick="event.stopPropagation(); app.changerStatut(${c.id}, 'annule')">Annuler le concours</button>
+      <button class="petit secondaire" onclick="event.stopPropagation(); app.envoyerDemande(${c.id})">Renvoyer la demande</button>`;
+  if (c.statut === 'confirme')
+    boutonDemande = `<button class="petit danger" onclick="event.stopPropagation(); app.changerStatut(${c.id}, 'annule')">Annuler le concours</button>`;
   const actions = avecActions ? `${suivi}<div class="actions">
       ${boutonDemande}
       <button class="petit secondaire" onclick="event.stopPropagation(); location.hash='#concours/${c.id}'">Modifier</button>
@@ -954,6 +985,20 @@ window.app = {
       if (error) throw error;
       await chargerConcours();
       message('ok', 'Demande envoyée à la SCMCA. Tu as reçu une copie par mail.');
+    });
+  },
+  changerStatut: (id, statut) => {
+    const c = etat.concours.find(x => x.id === id); if (!c) return;
+    const quoi = `le concours de ${c.commune} (${fmtPeriode(c)})`;
+    const question = statut === 'confirme'
+      ? `As-tu bien reçu la validation de la SCMCA par mail pour ${quoi} ? Il sera alors visible sur le calendrier public.`
+      : `Annuler ${quoi} ? Il restera affiché, barré, pour prévenir les concurrents. Pense aussi à prévenir la SCMCA.`;
+    if (!confirm(question)) return;
+    action(async () => {
+      const { error } = await sb.from('concours').update({ statut }).eq('id', id);
+      if (error) throw error;
+      await chargerConcours();
+      message('ok', statut === 'confirme' ? 'Concours validé : il est maintenant sur le calendrier public.' : 'Concours annulé.');
     });
   },
   verifierConflits(id) {
