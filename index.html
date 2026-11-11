@@ -88,6 +88,10 @@
   .b-clos { background: #eee; color: var(--gris); }
   .b-annule { background: #f6dedb; color: var(--rouge); }
   .b-provisoire { background: #e3ecf5; color: var(--bleu); }
+  .suivi { margin-top: 8px; font-size: .88rem; padding: 6px 10px; border-radius: 6px; background: #fdf0dc; color: #7a4a10; }
+  .suivi.ok { background: #dff1e1; color: #1f6b2c; }
+  .conflits { margin-top: 10px; }
+  .conflits ul { margin: 6px 0 0; padding-left: 18px; }
   .b-champ { background: #f3e6f7; color: #6b2c84; }
   .vide { color: var(--gris); font-style: italic; padding: 20px 0; }
   .msg { padding: 10px 12px; border-radius: 8px; margin: 10px 0; }
@@ -209,7 +213,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const REGIONS = ['Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Bretagne', 'Centre-Val de Loire',
   'Corse', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandie', 'Nouvelle-Aquitaine',
   'Occitanie', 'Pays de la Loire', "Provence-Alpes-Côte d'Azur", 'Hors France'];
-const STATUTS = { provisoire: 'Provisoire', confirme: 'Confirmé', annule: 'Annulé' };
+const STATUTS = { provisoire: 'Provisoire (demande en cours)', confirme: 'Validé SCMCA', annule: 'Annulé' };
 
 const etat = {
   session: null, profil: null,
@@ -277,7 +281,7 @@ function badgeInscription(c) {
 }
 function badgesConcours(c) {
   let h = badgeInscription(c);
-  if (c.statut === 'provisoire') h += '<span class="badge b-provisoire">Date provisoire</span>';
+  if (c.statut === 'provisoire') h += '<span class="badge b-provisoire">Provisoire</span>';
   if ((c.championnats || []).length) h += '<span class="badge b-champ">Qualificatif</span>';
   return h;
 }
@@ -373,7 +377,7 @@ function bandeauAccueil() {
     <div>
       <div class="surtitre">Société Canine Midi Côte d'Azur</div>
       <h2>Agenda des concours Troupeau</h2>
-      <p>Tous les concours de chiens de troupeau au même endroit : inter-races, spécial Border, FSDS, FCI et tests. Les dates sont saisies directement par les clubs organisateurs.</p>
+      <p>Tous les concours de chiens de troupeau au même endroit : inter-races, spécial Border, FSDS, FCI et tests. Les concours affichés ont été validés par la Société Canine Midi Côte d'Azur.</p>
       <div class="actions">
         <button class="clair" onclick="document.getElementById('calendrier-complet').scrollIntoView({behavior:'smooth'})">Voir le calendrier</button>
         ${bouton2}
@@ -410,6 +414,7 @@ function vueCalendrier(modeMois = false) {
       <button class="${modeMois ? '' : 'secondaire'}" onclick="location.hash='#mois'">Mois</button>
     </div>
   </div>`;
+  if (estValide()) html += `<div class="msg info">Tu es connecté : tu vois aussi les <strong>concours provisoires</strong> (demandes en cours), en hachuré ou avec l'étiquette « Provisoire ». Ils restent invisibles du public tant qu'ils ne sont pas validés.</div>`;
   html += modeMois ? vueMois() : vueListe();
   return html;
 }
@@ -417,7 +422,15 @@ function carteConcours(c, avecActions = false) {
   const d = versDate(c.date_debut);
   const tags = (c.niveaux || []).map(id => niveau(id)).filter(Boolean)
     .map(n => `<span class="tag">${esc(n.nom)}</span>`).join('');
-  const actions = avecActions ? `<div class="actions">
+  const suivi = !avecActions ? '' : c.statut === 'provisoire'
+    ? `<div class="suivi">${c.demande_envoyee_le
+        ? `Demande envoyée à la SCMCA le ${esc(new Date(c.demande_envoyee_le).toLocaleDateString('fr-FR'))}. Quand tu reçois la validation par mail, passe le concours en « Validé SCMCA » (bouton Modifier).`
+        : '<strong>Demande pas encore envoyée à la SCMCA.</strong>'}</div>`
+    : c.statut === 'confirme' ? '<div class="suivi ok">Validé par la SCMCA : visible sur le calendrier public.</div>' : '';
+  const boutonDemande = c.statut === 'provisoire'
+    ? `<button class="petit" onclick="event.stopPropagation(); app.envoyerDemande(${c.id})">${c.demande_envoyee_le ? 'Renvoyer la demande' : 'Envoyer la demande à la SCMCA'}</button>` : '';
+  const actions = avecActions ? `${suivi}<div class="actions">
+      ${boutonDemande}
       <button class="petit secondaire" onclick="event.stopPropagation(); location.hash='#concours/${c.id}'">Modifier</button>
       <button class="petit secondaire" onclick="event.stopPropagation(); app.dupliquer(${c.id})">Dupliquer</button>
       <button class="petit danger" onclick="event.stopPropagation(); app.supprimerConcours(${c.id})">Supprimer</button></div>` : '';
@@ -494,8 +507,8 @@ function vueMois() {
     <div class="groupe"><span class="titre-leg">Familles :</span>${familles.map(f => `<span><span class="leg-ech" style="background-color:${couleurFamille(f)}"></span>${esc(f.nom)}</span>`).join('')}</div>
   </div><div class="legende">
     <div class="groupe"><span class="titre-leg">Statut :</span>
-      <span><span class="leg-ech"></span>Confirmé</span>
-      <span><span class="leg-ech provisoire"></span>Date provisoire</span>
+      <span><span class="leg-ech"></span>Validé SCMCA</span>
+      ${estValide() ? '<span><span class="leg-ech provisoire"></span>Provisoire (visible des organisateurs uniquement)</span>' : ''}
       <span><span class="leg-ech annule"></span>Annulé</span>
       <span><span class="barre" style="display:inline-block;background:#7b827d;padding:0 5px;height:20px;line-height:20px"><span class="q" style="display:inline-block">Q</span></span> Qualificatif</span>
       <span><span class="barre" style="display:inline-block;background:#7b827d;padding:0 5px;height:20px;line-height:20px"><span class="autres" style="display:inline-flex;margin:0"><i style="background:#2f6690"></i></span></span> Autre famille au même concours</span>
@@ -558,7 +571,7 @@ function vueMentions() {
     <li><strong>Finalité :</strong> publier un calendrier commun des concours et permettre à chaque club de gérer ses propres concours.</li>
     <li><strong>Base légale :</strong> la demande de l'organisateur lorsqu'il crée son compte, et son accord pour la publication des informations qu'il saisit.</li>
     <li><strong>Informations publiques :</strong> pour les comptes validés, le nom du club, le responsable, le téléphone, l'email de contact, le site web et les informations des concours sont visibles par tous. Ne renseignez que des coordonnées que vous acceptez de voir publiées.</li>
-    <li><strong>Destinataires :</strong> les administrateurs du site, et les prestataires techniques cités plus haut (Supabase, Brevo), uniquement pour faire fonctionner le service. Les données ne sont ni vendues, ni cédées.</li>
+    <li><strong>Destinataires :</strong> les administrateurs du site, la Société Canine Midi Côte d'Azur pour les demandes de concours que l'organisateur choisit de lui envoyer, et les prestataires techniques cités plus haut (Supabase, Brevo), uniquement pour faire fonctionner le service. Les données ne sont ni vendues, ni cédées.</li>
     <li><strong>Durée de conservation :</strong> tant que le compte existe. Un compte et ses concours peuvent être supprimés sur simple demande.</li>
   </ul>
   <p><strong>Vos droits :</strong> vous pouvez accéder à vos données, les corriger (directement dans « Ma fiche »), demander leur suppression ou vous opposer à leur publication en écrivant à <a href="mailto:scmca.concours.troupeau@gmail.com">scmca.concours.troupeau@gmail.com</a>. Si vous estimez que vos droits ne sont pas respectés, vous pouvez adresser une réclamation à la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>).</p>
@@ -679,13 +692,14 @@ function vueFormConcours(id) {
     <h3 style="margin-top:0">Quand et où</h3>
     <div class="grille">
       ${ch('k-titre', 'Titre (facultatif, sinon généré automatiquement)', c.titre, 'text', true)}
-      ${ch('k-debut', 'Date de début *', c.date_debut, 'date')}
-      ${ch('k-fin', 'Date de fin (si plusieurs jours)', c.date_fin, 'date')}
+      ${ch('k-debut', 'Date de début *', c.date_debut, 'date', false, `oninput="app.verifierConflits('${esc(id)}')"`)}
+      ${ch('k-fin', 'Date de fin (si plusieurs jours)', c.date_fin, 'date', false, `oninput="app.verifierConflits('${esc(id)}')"`)}
       ${ch('k-commune', 'Commune *', c.commune)}
       ${ch('k-dep', 'Département', c.departement)}
       <div class="champ"><label>Région</label>${selectRegion('k-region', c.region)}</div>
       ${ch('k-adresse', 'Adresse / lieu-dit', c.adresse)}
     </div>
+    <div id="conflits" class="conflits">${htmlConflits(c.date_debut, c.date_fin, id)}</div>
     <h3>Épreuves</h3>
     ${casesNiveaux('k-niv', c.niveaux || [])}
     <h3>Juge(s)</h3>
@@ -706,7 +720,7 @@ function vueFormConcours(id) {
     </div>
     <h3>Statut et remarques</h3>
     <div class="grille">
-      <div class="champ"><label>Statut</label><select id="k-statut">${Object.entries(STATUTS).map(([k, v]) =>
+      <div class="champ large" style="max-width:420px"><label>Statut</label><select id="k-statut">${Object.entries(STATUTS).map(([k, v]) =>
         `<option value="${k}" ${c.statut === k ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
       <div class="champ large"><label>Remarques</label><textarea id="k-rem">${esc(c.remarques)}</textarea></div>
     </div>
@@ -715,6 +729,19 @@ function vueFormConcours(id) {
       <button class="secondaire" onclick="location.hash='#mes-concours'">Annuler</button>
     </div>
   </div>`;
+}
+
+// ---------- conflits de dates ----------
+function decaler(iso, jours) { const d = versDate(iso); d.setDate(d.getDate() + jours); return isoLocal(d); }
+function htmlConflits(debut, fin, idExclu) {
+  if (!debut) return '';
+  const a = decaler(debut, -1), b = decaler(fin && fin >= debut ? fin : debut, 1);
+  const proches = etat.concours.filter(x => String(x.id) !== String(idExclu) && x.statut !== 'annule'
+    && x.date_debut <= b && (x.date_fin || x.date_debut) >= a);
+  if (!proches.length) return '';
+  return `<div class="msg err" style="margin:0"><strong>Attention, d'autres concours sont prévus à ces dates ou juste à côté :</strong><ul>${proches.map(x =>
+    `<li>${esc(fmtPeriode(x))} - ${esc(x.commune)}${x.departement ? ' (' + esc(x.departement) + ')' : ''}${x.organisateur?.nom_club ? ' - ' + esc(x.organisateur.nom_club) : ''} - ${esc(STATUTS[x.statut])}</li>`).join('')}</ul>
+    Tu peux maintenir ta date, mais pense à te coordonner avec ces clubs.</div>`;
 }
 
 // ---------- vue : administration ----------
@@ -766,11 +793,19 @@ function vueAdmin() {
         <td><select onchange="app.majCompte('${c.id}', 'role', this.value)">${[['organisateur', 'Organisateur'], ['admin', 'Admin']]
           .map(([k, v]) => `<option value="${k}" ${c.role === k ? 'selected' : ''}>${v}</option>`).join('')}</select></td>
       </tr>`).join('')}</table></div>`;
+  } else if (o === 'parametres') {
+    const email = (etat.parametres || []).find(x => x.cle === 'email_scmca')?.valeur || '';
+    corps = `<div class="carte" style="max-width:560px">
+      <h3 style="margin-top:0">Demandes de concours</h3>
+      <div class="champ"><label>Adresse mail de la SCMCA qui reçoit les demandes</label>
+        <input id="p-email-scmca" type="email" value="${esc(email)}"></div>
+      <div class="actions"><button onclick="app.enregistrerParametres()">Enregistrer</button></div>
+    </div>`;
   } else {
     corps = editeurListe(o === 'epreuves' ? 'familles' : o) + (o === 'epreuves' ? editeurListe('niveaux') : '');
   }
   return `<h2>Administration</h2>${blocMessage()}
-    <div class="onglets">${onglet('comptes', 'Comptes')}${onglet('epreuves', 'Épreuves')}${onglet('championnats', 'Championnats')}${onglet('juges', 'Juges')}</div>
+    <div class="onglets">${onglet('comptes', 'Comptes')}${onglet('epreuves', 'Épreuves')}${onglet('championnats', 'Championnats')}${onglet('juges', 'Juges')}${onglet('parametres', 'Paramètres')}</div>
     ${corps}`;
 }
 
@@ -883,17 +918,22 @@ window.app = {
     if (d.inscription_ouverture && d.inscription_cloture && d.inscription_cloture < d.inscription_ouverture)
       throw new Error("La clôture des inscriptions est avant l'ouverture.");
     if (!d.niveaux.length) throw new Error('Coche au moins une épreuve.');
+    const ancien = etat.concours.find(x => String(x.id) === String(id));
+    if (d.statut === 'confirme' && ancien?.statut !== 'confirme'
+        && !confirm('As-tu bien reçu la validation de la SCMCA par mail ? Le concours sera alors visible sur le calendrier public.')) return;
     const req = id === 'nouveau' ? sb.from('concours').insert(d) : sb.from('concours').update(d).eq('id', Number(id));
     const { error } = await req;
     if (error) throw error;
     await chargerConcours();
-    message('ok', 'Concours enregistré.');
+    message('ok', id === 'nouveau' && d.statut === 'provisoire'
+      ? 'Concours enregistré en provisoire. Étape suivante : clique sur « Envoyer la demande à la SCMCA ».'
+      : 'Concours enregistré.');
     location.hash = '#mes-concours';
   }),
   dupliquer(id) {
     const c = etat.concours.find(x => x.id === id); if (!c) return;
     const { id: _i, organisateur_id, organisateur, created_at, updated_at, ...copie } = c;
-    etat.modele = { ...copie, date_debut: '', date_fin: '', inscription_ouverture: '', inscription_cloture: '', statut: 'provisoire' };
+    etat.modele = { ...copie, date_debut: '', date_fin: '', inscription_ouverture: '', inscription_cloture: '', statut: 'provisoire', demande_envoyee_le: null };
     location.hash = '#concours/nouveau';
   },
   supprimerConcours: (id) => {
@@ -906,10 +946,38 @@ window.app = {
     });
   },
   basculerTous() { etat.tousConcours = !etat.tousConcours; rendre(); },
+  envoyerDemande: (id) => {
+    const c = etat.concours.find(x => x.id === id); if (!c) return;
+    if (!confirm(`Envoyer la demande pour le concours de ${c.commune} (${fmtPeriode(c)}) à la SCMCA ? Tu recevras une copie, et la réponse de la SCMCA arrivera directement dans ta boîte mail.`)) return;
+    action(async () => {
+      const { error } = await sb.rpc('envoyer_demande_scmca', { p_id: id });
+      if (error) throw error;
+      await chargerConcours();
+      message('ok', 'Demande envoyée à la SCMCA. Tu as reçu une copie par mail.');
+    });
+  },
+  verifierConflits(id) {
+    const el = document.getElementById('conflits');
+    if (el) el.innerHTML = htmlConflits(valeur('k-debut'), valeur('k-fin'), id);
+  },
+  enregistrerParametres: () => action(async () => {
+    const email = valeur('p-email-scmca');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error('Adresse mail invalide.');
+    const { error } = await sb.from('parametres').upsert({ cle: 'email_scmca', valeur: email });
+    if (error) throw error;
+    const { data } = await sb.from('parametres').select('*');
+    etat.parametres = data;
+    message('ok', 'Adresse de la SCMCA enregistrée.');
+  }),
 
   ongletAdmin: (o) => action(async () => {
     etat.ongletAdmin = o;
     if (o === 'comptes') await chargerComptes();
+    if (o === 'parametres') {
+      const { data, error } = await sb.from('parametres').select('*');
+      if (error) throw error;
+      etat.parametres = data;
+    }
   }),
   majCompte: (id, champ, val) => action(async () => {
     const { error } = await sb.from('organisateurs').update({ [champ]: val }).eq('id', id);

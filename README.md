@@ -1,6 +1,6 @@
 # Agenda des concours Troupeau
 
-Calendrier commun des concours de chiens de troupeau, proposé à la Société Canine Midi Côte d'Azur (SCMCA). Les clubs organisateurs publient eux-mêmes leurs concours, les visiteurs et les concurrents consultent sans compte.
+Calendrier commun des concours de chiens de troupeau, proposé à la Société Canine Midi Côte d'Azur (SCMCA). Les clubs organisateurs y déposent leurs projets de concours et envoient leurs demandes à la SCMCA. Le calendrier public n'affiche que les concours validés.
 
 - **Adresse du site** : https://concours-troupeau-scmca.github.io/agenda_concours/
 - **Statut** : phase de test (voir la page « Mentions légales » du site)
@@ -24,10 +24,19 @@ Tous les comptes de service sont rattachés à l'adresse **scmca.concours.troupe
 ### Les rôles sur le site
 
 - **Visiteur** : consulte le calendrier (liste, vue mensuelle, filtres). Aucun compte nécessaire.
-- **Organisateur** : crée un compte, remplit sa fiche club, puis publie et gère **ses propres** concours, une fois validé par un admin.
+- **Organisateur** : crée un compte, remplit sa fiche club, puis dépose et gère **ses propres** concours, une fois validé par un admin. Connecté, il voit aussi les concours **provisoires** des autres clubs (calendrier des prévisions).
 - **Admin** : valide ou refuse les comptes, nomme d'autres admins, gère les listes (épreuves, couleurs, championnats, juges) et peut corriger n'importe quel concours.
 
 La sécurité est gérée dans la base elle-même : un compte non validé ne peut rien publier, et un organisateur ne peut pas modifier les concours des autres, même en bidouillant la page.
+
+### Le parcours d'un concours
+
+1. L'organisateur crée son concours : il est **Provisoire**, visible uniquement des organisateurs connectés. Le formulaire signale les autres concours prévus aux mêmes dates.
+2. Il clique sur **« Envoyer la demande à la SCMCA »** : la SCMCA reçoit un mail avec toutes les infos (copie à l'organisateur). La réponse de la SCMCA arrive directement chez l'organisateur.
+3. Après réception de la validation par mail, l'organisateur passe le concours en **Validé SCMCA** : il apparaît sur le calendrier public.
+4. En cas d'annulation, statut **Annulé** : le concours reste visible, barré.
+
+L'adresse qui reçoit les demandes se règle dans Administration, onglet **Paramètres**.
 
 ---
 
@@ -39,6 +48,7 @@ La sécurité est gérée dans la base elle-même : un compte non validé ne peu
 | `img/` | Médaille de la SCMCA, icône de l'onglet, photo d'accueil |
 | `schema.sql` | Création complète de la base (tables, sécurité, listes de départ, couleurs) |
 | `notifications.sql` | Notification des admins quand un nouveau compte attend une validation |
+| `maj-demandes-scmca.sql` | Demandes de concours à la SCMCA, paramètres, concours provisoires cachés du public |
 | `maj-couleurs.sql` | Ancienne mise à jour (couleurs des familles). Inutile pour une installation neuve, déjà incluse dans `schema.sql` |
 | `README.md` | Ce guide |
 
@@ -83,6 +93,7 @@ Une fois par saison : Supabase, **Table Editor**, puis exporter en CSV les table
 | Le mail « mot de passe oublié » ne part pas | Délai anti-abus de Supabase (environ 60 secondes par adresse) | Attendre 1 à 2 minutes avant de redemander |
 | Un mail arrive en anglais | Ancien mail regroupé dans le même fil Gmail | Ouvrir le mail le plus récent du fil |
 | Les mails n'arrivent pas | Spam, ou souci chez Brevo | Vérifier les spams, puis le journal d'envoi dans Brevo (Transactionnel) |
+| « Envoi de mails non configuré » lors d'une demande | Clé API Brevo absente du coffre | Refaire l'étape 5.6 |
 | Les admins ne reçoivent pas la notification | Clé API Brevo absente, ou adresse IP bloquée par Brevo | Voir la requête de diagnostic ci-dessous. Dans Brevo, Paramètres, Sécurité : vérifier le blocage des adresses IP inconnues |
 
 Requête de diagnostic des notifications (Supabase, SQL Editor) :
@@ -162,6 +173,8 @@ Dans Supabase, **Authentication**, **Emails**, onglet **Templates**. Après chaq
    select vault.create_secret('CLE_API_BREVO', 'brevo_api_key', 'Cle API Brevo pour les notifications admins');
    ```
 3. Nouvelle requête : coller tout `notifications.sql`, puis **Run**.
+4. Nouvelle requête : coller tout `maj-demandes-scmca.sql`, puis **Run** (envoi des demandes à la SCMCA).
+5. Dans le site, Administration, onglet **Paramètres** : renseigner l'adresse mail de la SCMCA.
 
 ### 5.7 Premier admin
 1. Créer un compte sur le site et le confirmer par mail.
